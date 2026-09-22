@@ -94,6 +94,8 @@ def create_app() -> FastAPI:
             ):
                 if slug == FLEX_SLUG:
                     continue
+                if len(comp_advice) >= req.top_n:
+                    break
                 comp = by_slug.get(slug)
                 if comp:
                     entry = entry_signals(state, comp)

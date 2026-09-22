@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Any, Protocol
@@ -35,6 +36,14 @@ class Engine(Protocol):
     name: str
 
     def decide(self, state: dict, questions: list[Question]) -> dict[str, Answer]: ...
+
+
+def _unit_key(raw: Any) -> str:
+    """Bare unit name from a describe() string ("2* Ahri [x, y]") or a dict."""
+    text = raw.get("name", "") if isinstance(raw, dict) else str(raw)
+    text = re.sub(r"^\d+\*\s*", "", text)
+    text = re.sub(r"\s*\[.*\]$", "", text)
+    return text.strip().lower()
 
 
 def _one_hot(choice: str, confidence: float, options: list[str]) -> dict[str, float]:
@@ -226,7 +235,7 @@ class MockEngine:
     def decide(self, state: dict, questions: list[Question]) -> dict[str, Answer]:
         out: dict[str, Answer] = {}
         owned = {
-            (u.get("name") if isinstance(u, dict) else str(u)).lower()
+            _unit_key(u)
             for u in state.get("board", []) + state.get("bench", [])
         }
         for q in questions:
@@ -257,7 +266,7 @@ class MockEngine:
         if question_id == "econ":
             gold = int(state.get("gold") or 0)
             level = int(state.get("level") or 0)
-            stage_num = int(str(state.get("stage") or "0").split("-")[0] or 0)
+            stage_num = int(state.get("stage_num") or 0)
             # level-behind-benchmark pushes level; deep gold favors hold; else roll
             behind = (stage_num >= 4 and level < 8) or (stage_num >= 3 and level < 6)
             rules = {
