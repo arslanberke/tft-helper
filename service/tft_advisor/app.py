@@ -8,7 +8,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from .comps import Comp, load_library
+from .comps import Comp, contested_count, load_library
 from .engines import Engine, FusedAnswer, build_default_engine
 from .questions import FLEX_SLUG, build_questions
 from .state import GameState
@@ -27,6 +27,7 @@ class CompAdvice(BaseModel):
     name: str
     probability: float
     agreement: bool
+    contested: int = 0  # opponents sharing >=2 core units
 
 
 class AdviceResponse(BaseModel):
@@ -72,6 +73,7 @@ def create_app() -> FastAPI:
         fused: dict[str, FusedAnswer] = engine.decide(state.describe(), questions)
 
         by_slug = {c.slug: c for c in comps}
+        opponent_units = [[u.name for u in o.units] for o in state.opponents]
         comp_advice: list[CompAdvice] = []
         if "comp" in fused:
             for slug, prob in sorted(
@@ -87,6 +89,7 @@ def create_app() -> FastAPI:
                             name=comp.name,
                             probability=round(prob, 3),
                             agreement=fused["comp"].agreement,
+                            contested=contested_count(comp.units, opponent_units),
                         )
                     )
                 if len(comp_advice) >= req.top_n:

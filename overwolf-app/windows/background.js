@@ -55,6 +55,15 @@ function parseMaybeJson(value) {
   }
 }
 
+function normOpponent(raw) {
+  if (!raw || typeof raw !== "object") return { name: String(raw ?? ""), units: [] };
+  const units = (raw.units || raw.board || raw.pieces || []).map(normUnit);
+  return {
+    name: raw.name || raw.summoner || raw.summoner_name || raw.tag_line || "",
+    units,
+  };
+}
+
 function normUnit(raw) {
   if (!raw || typeof raw !== "object") return { name: String(raw ?? "") };
   const items = (raw.items || []).map((i) =>
@@ -78,7 +87,8 @@ function applyKV(category, key, rawValue) {
     case "match_info":
       if (key === "round_type") gameState.round_type = String(value);
       else if (key === "stage" || key === "round") gameState.stage = String(value);
-      else if (key === "opponents") gameState.opponents = asList(value).map(String);
+      else if (key === "opponents")
+        gameState.opponents = asList(value).map(normOpponent);
       break;
     case "board":
       if (key === "board_pieces" || key === "board" || key === "units")
@@ -103,8 +113,8 @@ function applyKV(category, key, rawValue) {
     case "roster":
       if (key === "roster_players" || key === "players")
         gameState.opponents = asList(value)
-          .map((p) => (typeof p === "object" ? p.name || p.summoner || "" : String(p)))
-          .filter(Boolean);
+          .map(normOpponent)
+          .filter((o) => o.name || o.units.length);
       break;
     default:
       if (category !== "gep_internal" && category !== "game_info")
