@@ -52,6 +52,37 @@ def test_advice_end_to_end_with_mock_engine(monkeypatch) -> None:
     assert body["pivot"] is not None
 
 
+def test_advice_survives_malformed_stage(monkeypatch) -> None:
+    monkeypatch.setenv("TFT_ENGINE", "mock")
+    _engine.cache_clear()
+    _library.cache_clear()
+
+    client = TestClient(create_app())
+    resp = client.post(
+        "/advice",
+        json={
+            "state": {
+                "stage": "x-y",
+                "level": 7,
+                "board": [{"name": "4-cost carry"}],
+            }
+        },
+    )
+    assert resp.status_code == 200
+    assert "comps" in resp.json()
+
+
+def test_advice_top_n_zero_returns_no_comps(monkeypatch) -> None:
+    monkeypatch.setenv("TFT_ENGINE", "mock")
+    _engine.cache_clear()
+    _library.cache_clear()
+
+    client = TestClient(create_app())
+    resp = client.post("/advice", json={"state": {}, "top_n": 0})
+    assert resp.status_code == 200
+    assert resp.json()["comps"] == []
+
+
 def test_contested_count_flags_shared_cores() -> None:
     from tft_advisor.comps import contested_count
 

@@ -90,7 +90,7 @@ def build_questions(state: GameState, comps: list[Comp]) -> list[Question]:
             )
         )
 
-    if state.board and int(state.stage.split("-")[0] or 0) >= 3:
+    if state.board and state.stage_num >= 3:
         questions.append(
             Question(
                 id="pivot",

@@ -42,10 +42,19 @@ class GameState(BaseModel):
     picked_augments: list[str] = Field(default_factory=list)
     opponents: list[Opponent] = Field(default_factory=list)
 
+    @property
+    def stage_num(self) -> int:
+        """Numeric stage for logic gates; 0 when the stage string is malformed."""
+        try:
+            return int(self.stage.split("-")[0])
+        except (ValueError, IndexError, AttributeError):
+            return 0
+
     def describe(self) -> dict:
         """Compact JSON-friendly view sent to the decision models as `state`."""
         return {
             "stage": self.stage,
+            "stage_num": self.stage_num,
             "round_type": self.round_type,
             "level": self.level,
             "gold": self.gold,
