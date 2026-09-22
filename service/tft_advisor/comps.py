@@ -55,3 +55,13 @@ class Comp(BaseModel):
 def load_library(path: str | Path) -> list[Comp]:
     data = json.loads(Path(path).read_text())
     return [Comp.model_validate(c) for c in data["comps"]]
+
+
+def contested_count(
+    comp_units: list[str], opponent_units: list[list[str]], min_overlap: int = 2
+) -> int:
+    """How many opponents share at least `min_overlap` core units with the comp."""
+    core = {u.lower() for u in comp_units}
+    return sum(
+        1 for units in opponent_units if len(core & {u.lower() for u in units}) >= min_overlap
+    )

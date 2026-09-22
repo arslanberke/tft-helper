@@ -23,6 +23,17 @@ def test_advice_end_to_end_with_mock_engine(monkeypatch) -> None:
                 "hp": 60,
                 "board": [{"name": "4-cost carry", "star": 2, "items": ["bis 1"]}],
                 "offered_augments": ["econ augment", "combat augment", "trait emblem augment"],
+                "opponents": [
+                    {
+                        "name": "RivalOne",
+                        "units": [
+                            {"name": "4-cost carry"},
+                            {"name": "4-cost tank"},
+                            {"name": "unrelated unit"},
+                        ],
+                    },
+                    {"name": "RivalTwo", "units": [{"name": "unrelated unit"}]},
+                ],
             }
         },
     )
@@ -39,6 +50,15 @@ def test_advice_end_to_end_with_mock_engine(monkeypatch) -> None:
         "trait emblem augment",
     }
     assert body["pivot"] is not None
+
+
+def test_contested_count_flags_shared_cores() -> None:
+    from tft_advisor.comps import contested_count
+
+    opponents = [["4-cost carry", "4-cost tank", "other"], ["other", "also other"]]
+    assert contested_count(["4-cost carry", "4-cost tank"], opponents) == 1
+    assert contested_count(["low-cost carry"], opponents) == 0
+    assert contested_count(["other"], opponents, min_overlap=1) == 2
 
 
 def test_health_reports_mock_engine(monkeypatch) -> None:

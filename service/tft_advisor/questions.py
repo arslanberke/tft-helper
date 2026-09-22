@@ -41,7 +41,9 @@ def build_questions(state: GameState, comps: list[Comp]) -> list[Question]:
                 kind="choice",
                 instructions=(
                     "You are a Challenger-level TFT coach. Given this board, bench, shop, "
-                    "items, augments and economy, which composition should the player commit to?"
+                    "items, augments and economy, which composition should the player commit "
+                    "to? Downweight comps that opponents are clearly contesting — rival "
+                    "boards are listed under opponents."
                 ),
                 criteria=criteria,
             )

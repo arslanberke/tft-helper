@@ -14,6 +14,17 @@ class Unit(BaseModel):
         return f"{star}{self.name}{items}"
 
 
+class Opponent(BaseModel):
+    """A rival player's board, as far as GEP exposes it."""
+
+    name: str = ""
+    units: list[Unit] = Field(default_factory=list)
+
+    def describe(self) -> str:
+        board = ", ".join(u.describe() for u in self.units)
+        return f"{self.name}: {board}" if board else self.name
+
+
 class GameState(BaseModel):
     """Point-in-time snapshot of a TFT game, assembled by the Overwolf listener."""
 
@@ -27,7 +38,7 @@ class GameState(BaseModel):
     shop: list[str] = Field(default_factory=list)
     offered_augments: list[str] = Field(default_factory=list)
     picked_augments: list[str] = Field(default_factory=list)
-    opponents: list[str] = Field(default_factory=list)
+    opponents: list[Opponent] = Field(default_factory=list)
 
     def describe(self) -> dict:
         """Compact JSON-friendly view sent to the decision models as `state`."""
@@ -42,5 +53,5 @@ class GameState(BaseModel):
             "shop": self.shop,
             "offered_augments": self.offered_augments,
             "picked_augments": self.picked_augments,
-            "opponents": self.opponents,
+            "opponents": [o.describe() for o in self.opponents],
         }

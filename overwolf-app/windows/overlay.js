@@ -11,8 +11,11 @@ function renderAdvice(advice) {
     row.className = "comp";
     const badge = c.agreement ? "AGREE" : "SPLIT";
     const badgeClass = c.agreement ? "yes" : "no";
+    const contested =
+      c.contested > 0 ? `<span class="agree contested">x${c.contested} contested</span>` : "";
     row.innerHTML =
       `<span class="name"></span>` +
+      contested +
       `<span class="agree ${badgeClass}">${badge}</span>` +
       `<span class="prob">${Math.round(c.probability * 100)}%</span>`;
     row.querySelector(".name").textContent = c.name;
