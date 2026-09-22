@@ -255,6 +255,33 @@ function sendScout(name, units) {
   });
 }
 
+// Auto-scan toggle: screen reading is the risky path and can be switched off
+// at runtime — manual scout entry always stays available.
+function applyScoutToggle(enabled) {
+  el("scout-toggle").checked = !!enabled;
+  el("scout-scan").hidden = !enabled;
+}
+
+fetch(`${SERVICE_URL}/scout/status`)
+  .then((r) => (r.ok ? r.json() : null))
+  .then((s) => s && applyScoutToggle(s.enabled))
+  .catch(() => {});
+
+el("scout-toggle").addEventListener("change", async (e) => {
+  try {
+    const resp = await fetch(`${SERVICE_URL}/scout/toggle`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled: e.target.checked }),
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    applyScoutToggle(e.target.checked);
+  } catch (err) {
+    el("scout-msg").textContent = `toggle failed: ${String(err).slice(0, 80)}`;
+    e.target.checked = !e.target.checked;
+  }
+});
+
 el("scout-save").addEventListener("click", () => {
   const name = el("s-name").value.trim();
   const msg = el("scout-msg");

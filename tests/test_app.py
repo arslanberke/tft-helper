@@ -315,3 +315,24 @@ def test_rival_names_in_response(monkeypatch) -> None:
     )
     assert resp.status_code == 200
     assert resp.json()["rival_names"] == ["r1", "r2"]
+
+
+def test_scout_toggle_disables_screen_scan(monkeypatch) -> None:
+    import tft_advisor.app as app_mod
+
+    monkeypatch.setattr(app_mod, "scout_available", lambda: True)
+    monkeypatch.setattr(
+        app_mod, "scout_board", lambda: {"units": ["Ahri"], "cells": [], "debug_shot": ""}
+    )
+    client = TestClient(create_app())
+
+    resp = client.post("/scout")
+    assert resp.status_code == 200  # enabled by default
+
+    resp = client.post("/scout/toggle", json={"enabled": False})
+    assert resp.json()["enabled"] is False
+    assert client.get("/scout/status").json()["enabled"] is False
+    assert client.post("/scout").status_code == 403  # off -> no screen read
+
+    resp = client.post("/scout/toggle", json={"enabled": True})
+    assert client.post("/scout").status_code == 200  # back on
