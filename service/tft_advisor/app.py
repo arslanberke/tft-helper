@@ -86,6 +86,10 @@ class AdviceResponse(BaseModel):
     level: int = 0
 
 
+class ScoutToggle(BaseModel):
+    enabled: bool
+
+
 class CompIn(BaseModel):
     """Payload for user-created comps (from the overlay's builder UI)."""
 
@@ -205,11 +209,30 @@ def create_app() -> FastAPI:
         )
         return {"ok": True, "engines": engines, "comps": len(_library())}
 
+    # Screen-reading auto-scan is opt-in: the risky path (Riot policy) can be
+    # toggled at runtime; manual scout notes always keep working.
+    scout_enabled = os.environ.get("TFT_SCOUT", "1") != "0"
+
+    @app.get("/scout/status")
+    def scout_status() -> dict:
+        return {"enabled": scout_enabled, "available": scout_available()}
+
+    @app.post("/scout/toggle")
+    def scout_toggle(req: ScoutToggle) -> dict:
+        nonlocal scout_enabled
+        scout_enabled = bool(req.enabled)
+        return {"enabled": scout_enabled, "available": scout_available()}
+
     @app.post("/scout")
     def scout() -> dict:
         """Screen-scout the rival board currently shown in-game: capture the
         board region, template-match champion tiles, return the unit names.
-        Returns 503 until `.[scout]` extras + icons are installed."""
+        403 while toggled off; 503 until `.[scout]` extras + icons are installed."""
+        if not scout_enabled:
+            raise HTTPException(
+                status_code=403,
+                detail="screen scout is disabled — enable via POST /scout/toggle",
+            )
         if not scout_available():
             raise HTTPException(
                 status_code=503,
