@@ -224,6 +224,31 @@ overwolf.windows.onMessageReceived.addListener((message) => {
 
 const SERVICE_URL = "http://127.0.0.1:8371";
 
+// Manual scout: the user inspected a rival's board in-game and types what
+// they saw — GEP never exposes opponent boards, so this is the only way
+// rival unit data reaches the service.
+el("scout-save").addEventListener("click", () => {
+  const name = el("s-name").value.trim();
+  const msg = el("scout-msg");
+  if (!name) {
+    msg.textContent = "rival name required";
+    return;
+  }
+  const units = el("s-units").value
+    .split(/[,\n]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const send = (id) =>
+    overwolf.windows.sendMessage(id, "scout", { name, units }, (res) => {
+      msg.textContent =
+        res && res.success !== false ? `scouted ${name}` : "send failed";
+    });
+  overwolf.windows.obtainDeclaredWindow("background", (res) => {
+    if (res && res.success && res.window) send(res.window.id);
+    else msg.textContent = "background not reachable";
+  });
+});
+
 el("builder-toggle").addEventListener("click", () => {
   const form = el("builder");
   form.hidden = !form.hidden;

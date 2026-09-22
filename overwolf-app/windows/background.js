@@ -199,15 +199,19 @@ function applyKV(category, key, rawValue) {
     case "roster":
       if (key === "player_status") {
         const players = typeof value === "object" ? value : {};
+        const prev = new Map(gameState.opponents.map((o) => [o.name, o]));
         gameState.opponents = Object.entries(players)
           .filter(([, p]) => !p.localplayer)
-          .map(([pname, p]) => ({
-            name: pname,
-            units: (p.units || p.board || []).map(normUnit),
-            health: typeof p.health === "number" ? p.health : null,
-            xp: typeof p.xp === "number" ? p.xp : null,
-            last_result: "",
-          }))
+          .map(([pname, p]) => {
+            const old = prev.get(pname) || {};
+            return {
+              name: pname,
+              units: (p.units || p.board || []).map(normUnit).concat(old.units || []),
+              health: typeof p.health === "number" ? p.health : null,
+              xp: typeof p.xp === "number" ? p.xp : null,
+              last_result: old.last_result || "",
+            };
+          })
           .filter((o) => o.name);
         const me = Object.entries(players).find(([, p]) => p.localplayer);
         if (me) gameState.me_name = me[0];
@@ -319,6 +323,25 @@ function init() {
     }
   });
   overwolf.games.events.onError.addListener((e) => console.warn("[advisor] gep error", e));
+
+  // Manual scout notes from the overlay: the user inspected a rival's board
+  // in-game (GEP never exposes it) and typed what they saw.
+  overwolf.windows.onMessageReceived.addListener((message) => {
+    if (message.id !== "scout") return;
+    const { name, units } = message.content || {};
+    if (!name || !Array.isArray(units)) return;
+    const known = gameState.opponents.find((o) => o.name === name);
+    if (known) known.units = units.map(normUnit);
+    else
+      gameState.opponents.push({
+        name,
+        units: units.map(normUnit),
+        health: null,
+        xp: null,
+        last_result: "",
+      });
+    requestAdvice();
+  });
 
   overwolf.games.getRunningGameInfo((res) => {
     if (res && res.isRunning && res.id && Math.floor(res.id / 10) === 5426) onMatchStart();
