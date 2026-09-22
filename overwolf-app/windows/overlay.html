@@ -29,7 +29,7 @@
       #status { font-weight: 400; }
       #status.off { color: #ff7d7d; }
       #status.on { color: #7ddba3; }
-      main { padding: 8px 12px; font-size: 13px; }
+      main { padding: 8px 12px; font-size: 13px; overflow-y: auto; height: calc(100vh - 32px); }
       .section-title {
         font-size: 10px;
         color: #7e8aa5;
@@ -63,22 +63,76 @@
         padding: 4px 8px;
         font-size: 12px;
       }
+      .chip.mark-carry { background: rgba(125, 219, 163, 0.18); color: #a9eec7; }
+      .chip.mark-core { background: rgba(168, 199, 255, 0.18); color: #c9d9f8; }
+      .chip.mark-pair { background: rgba(255, 190, 90, 0.15); color: #ffd9a0; }
+      #next-ops { font-size: 11px; color: #9fb3d8; }
+      #builder-toggle {
+        background: none;
+        border: 1px solid rgba(120, 160, 255, 0.3);
+        color: #9fb3d8;
+        border-radius: 4px;
+        font-size: 10px;
+        padding: 1px 6px;
+        cursor: pointer;
+      }
+      #builder { margin-top: 8px; font-size: 11px; }
+      #builder input, #builder textarea {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 4px;
+        color: #e8ecf4;
+        font-size: 11px;
+        padding: 4px 6px;
+        margin-bottom: 4px;
+        font-family: inherit;
+      }
+      #builder textarea { resize: none; }
+      #builder-save {
+        background: rgba(125, 219, 163, 0.15);
+        border: 1px solid rgba(125, 219, 163, 0.4);
+        color: #7ddba3;
+        border-radius: 4px;
+        padding: 3px 10px;
+        cursor: pointer;
+      }
+      #builder-msg { font-size: 10px; color: #ffbe5a; margin-top: 4px; }
       #empty { color: #7e8aa5; padding: 16px 4px; text-align: center; }
     </style>
   </head>
   <body>
     <header>
       <span>Comp Advisor</span>
-      <span id="status" class="off">service offline</span>
+      <span>
+        <button id="builder-toggle">+ comp</button>
+        <span id="status" class="off">service offline</span>
+      </span>
     </header>
     <main>
       <div id="empty">Waiting for advice…<br>Start the decision service: <code>tft-advisor</code></div>
       <div id="comps"></div>
+      <div class="section-title" id="shop-title" hidden>Shop — take</div>
+      <div class="hint-bar" id="shop"></div>
       <div class="section-title" id="econ-title" hidden>Economy</div>
       <div class="hint-bar" id="econ"></div>
       <div class="section-title" id="aug-title" hidden>Augments</div>
       <div class="hint" id="aug"></div>
       <div class="hint" id="pivot"></div>
+      <div class="hint" id="prep"></div>
+      <div class="section-title" id="next-title" hidden>Opponents</div>
+      <div class="hint" id="next-ops"></div>
+      <div id="builder" hidden>
+        <input id="b-name" placeholder="comp name (required)">
+        <textarea id="b-units" rows="2" placeholder="units, comma separated"></textarea>
+        <textarea id="b-traits" rows="1" placeholder="traits (optional)"></textarea>
+        <input id="b-strategy" placeholder="strategy note (optional)">
+        <input id="b-front" placeholder="frontline units (optional)">
+        <input id="b-back" placeholder="backline units (optional)">
+        <textarea id="b-items" rows="2" placeholder="carry items, one per line: Carry Name: item1, item2"></textarea>
+        <button id="builder-save">Save comp</button>
+        <div id="builder-msg"></div>
+      </div>
     </main>
     <script src="overlay.js"></script>
   </body>

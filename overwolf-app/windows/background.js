@@ -45,6 +45,7 @@ function freshState() {
     offered_augments: [],
     picked_augments: [],
     opponents: [],
+    fought_opponents: [],
   };
 }
 
@@ -97,6 +98,21 @@ function applyKV(category, key, rawValue) {
       else if (key === "stage" || key === "round") gameState.stage = String(value);
       else if (key === "opponents")
         gameState.opponents = asList(value).map(normOpponent);
+      else if (
+        key === "last_opponent" ||
+        key === "opponent_fought" ||
+        key === "fought_opponent"
+      ) {
+        const name =
+          typeof value === "object" ? normOpponent(value).name : String(value);
+        if (
+          name &&
+          gameState.fought_opponents[gameState.fought_opponents.length - 1] !==
+            name
+        )
+          gameState.fought_opponents.push(name);
+      } else if (key === "fought_opponents")
+        gameState.fought_opponents = asList(value).map(String);
       break;
     case "board":
       if (key === "board_pieces" || key === "board" || key === "units")

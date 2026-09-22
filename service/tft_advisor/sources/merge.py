@@ -34,6 +34,17 @@ def merge_sources(raw_groups: list[list[RawComp]], manual: list[Comp] | None = N
         pivots = cond.get("pivot_slugs") or []
         target.pivot_slugs = sorted(set(target.pivot_slugs) | set(pivots))
 
+    def merge_positioning(target: Comp, pos: dict) -> None:
+        for field in ("frontline", "backline"):
+            terms = pos.get(field) or []
+            if isinstance(terms, str):
+                terms = [terms]
+            existing = getattr(target.positioning, field)
+            merged = list(dict.fromkeys([*existing, *(t for t in terms if t)]))
+            setattr(target.positioning, field, merged)
+        if pos.get("notes") and not target.positioning.notes:
+            target.positioning.notes = str(pos["notes"])
+
     for comp in manual or []:
         target = ensure(comp.slug, comp.name)
         target.units = sorted(set(target.units) | set(comp.units))
@@ -49,6 +60,12 @@ def merge_sources(raw_groups: list[list[RawComp]], manual: list[Comp] | None = N
                 "pivot_slugs": comp.pivot_slugs,
             },
         )
+        merge_positioning(target, comp.positioning.model_dump())
+        for unit, subs in comp.substitutes.items():
+            existing = target.substitutes.get(unit, [])
+            target.substitutes[unit] = list(dict.fromkeys([*existing, *subs]))
+        if comp.endgame and not target.endgame:
+            target.endgame = comp.endgame
         target.sources.extend(comp.sources)
 
     for group in raw_groups:
@@ -62,6 +79,12 @@ def merge_sources(raw_groups: list[list[RawComp]], manual: list[Comp] | None = N
                 set(comp.augment_priority) | set(raw.augment_priority)
             )
             merge_conditions(comp, raw.conditions)
+            merge_positioning(comp, raw.positioning)
+            for unit, subs in raw.substitutes.items():
+                existing = comp.substitutes.get(unit, [])
+                comp.substitutes[unit] = list(dict.fromkeys([*existing, *subs]))
+            if raw.endgame and not comp.endgame:
+                comp.endgame = raw.endgame
             for unit, cost in raw.unit_costs.items():
                 comp.unit_costs.setdefault(unit, cost)
             for stat in ("avg_place", "top4", "pick_rate"):

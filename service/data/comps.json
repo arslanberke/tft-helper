@@ -17,6 +17,16 @@
       "strategy": "Slow roll above 50g at reroll level",
       "reroll_level": 5,
       "pivot_slugs": ["example-fast-8-flex"],
+      "positioning": {
+        "frontline": ["frontline bot", "trait bot"],
+        "backline": ["low-cost carry"],
+        "notes": "corner the carry; front bot one hex off-center to split aggro"
+      },
+      "substitutes": {
+        "trait bot": ["flex unit"],
+        "flex unit": ["any cheap trait unit"]
+      },
+      "endgame": "after carry 3*, level up and add a 5-cost utility unit",
       "unit_costs": {"low-cost carry": 1, "frontline bot": 1, "trait bot": 2, "flex unit": 3},
       "avg_place": 3.8,
       "top4": 0.61,
@@ -38,6 +48,16 @@
       },
       "strategy": "Stabilize on 8 with a 4-1/4-2 roll-down",
       "pivot_slugs": ["example-vertical-trait"],
+      "positioning": {
+        "frontline": ["4-cost tank"],
+        "backline": ["4-cost carry", "support unit", "utility unit"],
+        "notes": "spread vs AoE lobbies; carry opposite the enemy's main threat"
+      },
+      "substitutes": {
+        "4-cost tank": ["any 4-cost frontliner"],
+        "utility unit": ["trait unit 3"]
+      },
+      "endgame": "on 9, drop utility unit for a 5-cost pair or a second copy of the carry",
       "unit_costs": {"4-cost carry": 4, "4-cost tank": 4, "support unit": 3, "utility unit": 2},
       "avg_place": 3.1,
       "top4": 0.74,
@@ -58,6 +78,15 @@
         "econ": ""
       },
       "strategy": "Commit early when the trait opener/emblem shows",
+      "positioning": {
+        "frontline": ["trait unit 1", "trait unit 2"],
+        "backline": ["emblem holder"],
+        "notes": "keep the emblem holder away from assassin/hex access"
+      },
+      "substitutes": {
+        "emblem holder": ["trait unit 3"]
+      },
+      "endgame": "trait cap at 8/9 with the vertical's 5-cost unit",
       "unit_costs": {"trait unit 1": 2, "trait unit 2": 3, "trait unit 3": 4, "emblem holder": 4},
       "avg_place": 4.4,
       "top4": 0.48,

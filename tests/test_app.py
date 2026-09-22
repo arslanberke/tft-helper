@@ -50,6 +50,64 @@ def test_advice_end_to_end_with_mock_engine(monkeypatch) -> None:
         "trait emblem augment",
     }
     assert body["pivot"] is not None
+    assert body["prep"] is not None  # opponents present + stage >= 2
+    assert {o["name"] for o in body["next_opponents"]} == {"RivalOne", "RivalTwo"}
+    assert body["comps"][0]["positioning"]["frontline"]
+    top = body["comps"][0]
+    # '4-cost carry' is on the board, so it must not appear in missing_units
+    assert all(m["unit"] != "4-cost carry" for m in top["missing_units"])
+
+
+def test_advice_shop_marks_carry_core_and_pair(monkeypatch) -> None:
+    monkeypatch.setenv("TFT_ENGINE", "mock")
+    _engine.cache_clear()
+    _library.cache_clear()
+
+    client = TestClient(create_app())
+    resp = client.post(
+        "/advice",
+        json={
+            "state": {
+                "stage": "4-1",
+                "board": [{"name": "4-cost carry"}, {"name": "support unit"}],
+                "shop": ["4-cost carry", "4-cost tank", "support unit", "unrelated unit"],
+            }
+        },
+    )
+    assert resp.status_code == 200
+    marks = {m["unit"]: m["reason"] for m in resp.json()["shop"]}
+    assert marks.get("4-cost carry") == "carry"
+    assert marks.get("4-cost tank") == "core"
+    assert marks.get("support unit") in {"core", "pair"}
+    assert "unrelated unit" not in marks
+
+
+def test_next_opponents_respects_fought_history(monkeypatch) -> None:
+    monkeypatch.setenv("TFT_ENGINE", "mock")
+    _engine.cache_clear()
+    _library.cache_clear()
+
+    client = TestClient(create_app())
+    resp = client.post(
+        "/advice",
+        json={
+            "state": {
+                "stage": "3-4",
+                "opponents": [
+                    {"name": "Alpha", "units": [{"name": "4-cost carry"}, {"name": "4-cost tank"}]},
+                    {"name": "Beta", "units": [{"name": "x"}]},
+                    {"name": "Gamma", "units": [{"name": "y"}]},
+                ],
+                "fought_opponents": ["Alpha"],
+            }
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    names = {o["name"] for o in body["next_opponents"]}
+    assert "Alpha" not in names  # just fought -> excluded from next cycle
+    assert names == {"Beta", "Gamma"}
+    assert body["last_fought"] == "Alpha"
 
 
 def test_advice_survives_malformed_stage(monkeypatch) -> None:
@@ -101,3 +159,52 @@ def test_health_reports_mock_engine(monkeypatch) -> None:
     body = client.get("/health").json()
     assert body["ok"] is True
     assert body["engines"] == ["mock"]
+
+
+def test_custom_comp_crud_roundtrip(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("TFT_ENGINE", "mock")
+    monkeypatch.setenv("TFT_CUSTOM_COMPS", str(tmp_path / "custom.json"))
+    _engine.cache_clear()
+    _library.cache_clear()
+
+    client = TestClient(create_app())
+    created = client.post(
+        "/comps",
+        json={
+            "name": "My Homebrew",
+            "units": ["my unit a", "my unit b"],
+            "carry_items": {"my unit a": ["item x"]},
+            "positioning": {"frontline": ["my unit b"], "backline": ["my unit a"]},
+        },
+    )
+    assert created.status_code == 201
+    slug = created.json()["slug"]
+    assert slug == "my-homebrew"
+
+    listed = client.get("/comps").json()["comps"]
+    assert any(c["slug"] == "my-homebrew" for c in listed)
+
+    # the custom comp is part of the advice criteria set
+    resp = client.post(
+        "/advice",
+        json={"state": {"board": [{"name": "my unit a"}, {"name": "my unit b"}]}},
+    )
+    assert resp.status_code == 200
+    assert any(c["slug"] == "my-homebrew" for c in resp.json()["comps"])
+
+    deleted = client.delete(f"/comps/{slug}")
+    assert deleted.status_code == 200
+    assert not any(
+        c["slug"] == "my-homebrew" for c in client.get("/comps").json()["comps"]
+    )
+    assert client.delete(f"/comps/{slug}").status_code == 404
+
+
+def test_create_comp_requires_name(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("TFT_ENGINE", "mock")
+    monkeypatch.setenv("TFT_CUSTOM_COMPS", str(tmp_path / "custom.json"))
+    _engine.cache_clear()
+    _library.cache_clear()
+
+    client = TestClient(create_app())
+    assert client.post("/comps", json={"name": "  "}).status_code == 422

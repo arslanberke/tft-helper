@@ -35,9 +35,54 @@ function renderAdvice(advice) {
     const piv = (c.pivot_to || [])[0];
     if (piv && (c.contested > 0 || (c.entry && c.entry.score < 0.5)))
       bits.push(`pivot → ${piv.name} (${piv.shared} shared)`);
+    if (c.positioning && (c.positioning.frontline || []).length)
+      bits.push(
+        `front: ${c.positioning.frontline.join(", ")}` +
+          (c.positioning.backline && c.positioning.backline.length
+            ? ` · back: ${c.positioning.backline.join(", ")}`
+            : "")
+      );
+    const missing = (c.missing_units || [])[0];
+    if (missing)
+      bits.push(
+        `missing ${missing.unit}` +
+          (missing.sub && missing.sub.length ? ` → ${missing.sub.join("/")}` : "")
+      );
+    if (c.endgame) bits.push(`endgame: ${c.endgame}`);
     sub.textContent = bits.join(" · ");
     row.appendChild(sub);
     compsEl.appendChild(row);
+  }
+
+  const shopEl = el("shop");
+  shopEl.innerHTML = "";
+  el("shop-title").hidden = !(advice.shop || []).length;
+  for (const m of advice.shop || []) {
+    const chip = document.createElement("span");
+    chip.className = `chip mark-${m.reason}`;
+    chip.textContent = `${m.unit} (${m.reason})`;
+    shopEl.appendChild(chip);
+  }
+
+  const nextEl = el("next-ops");
+  nextEl.innerHTML = "";
+  el("next-title").hidden = !(advice.next_opponents || []).length;
+  if ((advice.next_opponents || []).length) {
+    const bits = (advice.next_opponents || []).map((o) => {
+      const t = o.shared > 0 ? ` — shares ${o.shared}` : "";
+      return o.name + t;
+    });
+    nextEl.textContent =
+      (advice.last_fought ? `last: ${advice.last_fought} · ` : "") +
+      `next? ${bits.join(", ")}`;
+  }
+
+  const prepEl = el("prep");
+  if (typeof advice.prep === "number" && advice.prep > 0.5) {
+    prepEl.textContent = `Prep adjustment signal: ${Math.round(advice.prep * 100)}%`;
+    prepEl.style.color = "#ffbe5a";
+  } else {
+    prepEl.textContent = "";
   }
 
   const econEl = el("econ");
@@ -81,5 +126,53 @@ overwolf.windows.onMessageReceived.addListener((message) => {
     const status = el("status");
     status.textContent = message.content.online ? "service online" : "service offline";
     status.className = message.content.online ? "on" : "off";
+  }
+});
+
+const SERVICE_URL = "http://127.0.0.1:8371";
+
+el("builder-toggle").addEventListener("click", () => {
+  const form = el("builder");
+  form.hidden = !form.hidden;
+});
+
+el("builder-save").addEventListener("click", async () => {
+  const name = el("b-name").value.trim();
+  const msg = el("builder-msg");
+  if (!name) {
+    msg.textContent = "name required";
+    return;
+  }
+  const parseList = (v) =>
+    v
+      .split(/[,\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  const body = {
+    name,
+    units: parseList(el("b-units").value),
+    traits: parseList(el("b-traits").value),
+    strategy: el("b-strategy").value.trim(),
+    positioning: {
+      frontline: parseList(el("b-front").value),
+      backline: parseList(el("b-back").value),
+    },
+  };
+  for (const line of el("b-items").value.split("\n")) {
+    const m = line.match(/^\s*([^:>]+)\s*:\s*(.+)$/);
+    if (m) body.carry_items = body.carry_items || {};
+    if (m) body.carry_items[m[1].trim()] = parseList(m[2]);
+  }
+  try {
+    const resp = await fetch(`${SERVICE_URL}/comps`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) throw new Error(await resp.text());
+    msg.textContent = `saved "${name}"`;
+    el("b-name").value = "";
+  } catch (err) {
+    msg.textContent = `save failed: ${String(err).slice(0, 80)}`;
   }
 });

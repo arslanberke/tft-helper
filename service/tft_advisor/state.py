@@ -41,6 +41,7 @@ class GameState(BaseModel):
     offered_augments: list[str] = Field(default_factory=list)
     picked_augments: list[str] = Field(default_factory=list)
     opponents: list[Opponent] = Field(default_factory=list)
+    fought_opponents: list[str] = Field(default_factory=list)  # names in order fought (latest last)
 
     @property
     def stage_num(self) -> int:
@@ -49,6 +50,18 @@ class GameState(BaseModel):
             return int(self.stage.split("-")[0])
         except (ValueError, IndexError, AttributeError):
             return 0
+
+    def next_opponent_candidates(self) -> list[Opponent]:
+        """Who we can face next round. TFT matchmaking cycles through the
+        lobby: you can't redraw an opponent you fought in the last cycle,
+        so candidates = alive rivals not seen in the most recent rounds.
+        Falls back to all rivals when data is thin."""
+        if not self.opponents:
+            return []
+        window = max(1, len(self.opponents) - 1)
+        recent = set(self.fought_opponents[-window:])
+        candidates = [o for o in self.opponents if o.name not in recent]
+        return candidates or list(self.opponents)
 
     def describe(self) -> dict:
         """Compact JSON-friendly view sent to the decision models as `state`."""
@@ -67,4 +80,8 @@ class GameState(BaseModel):
             "offered_augments": self.offered_augments,
             "picked_augments": self.picked_augments,
             "opponents": [o.describe() for o in self.opponents],
+            "fought_opponents": self.fought_opponents,
+            "likely_next_opponents": [
+                o.describe() for o in self.next_opponent_candidates()
+            ],
         }

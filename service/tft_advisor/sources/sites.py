@@ -131,6 +131,16 @@ def parse_generic(site: str) -> Callable[[dict], list[RawComp]]:
             for key in ("strategy", "reroll_level", "pivot_slugs"):
                 if key in entry and key not in conditions:
                     conditions[key] = entry[key]
+            positioning = entry.get("positioning") or {}
+            if not isinstance(positioning, dict):
+                positioning = {}
+            for key in ("frontline", "backline", "positioning_notes"):
+                target = "notes" if key == "positioning_notes" else key
+                if key in entry and target not in positioning:
+                    positioning[target] = entry[key]
+            substitutes = entry.get("substitutes") or entry.get("replacements") or {}
+            if not isinstance(substitutes, dict):
+                substitutes = {}
             raw_units = entry.get("units") or []
             units: list[str] = []
             unit_costs: dict[str, int] = {}
@@ -152,6 +162,12 @@ def parse_generic(site: str) -> Callable[[dict], list[RawComp]]:
                     units=units,
                     traits=[t for t in entry.get("traits", []) if isinstance(t, str)],
                     conditions=conditions,
+                    positioning=positioning,
+                    substitutes={
+                        str(k): [str(s) for s in (v if isinstance(v, list) else [v])]
+                        for k, v in substitutes.items()
+                    },
+                    endgame=str(entry.get("endgame") or entry.get("late_game") or ""),
                     unit_costs=unit_costs,
                     avg_place=_num(entry, "avg_place", "average_place", "placement"),
                     top4=_rate(entry, "top4", "top4_rate"),

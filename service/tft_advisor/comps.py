@@ -29,6 +29,14 @@ class CompConditions(BaseModel):
     econ: str = ""  # reroll | fast8 | fast9 | ...
 
 
+class Positioning(BaseModel):
+    """Board placement guide: which units hold the front vs the back line."""
+
+    frontline: list[str] = Field(default_factory=list)  # tanks / melee up front
+    backline: list[str] = Field(default_factory=list)  # carries / squishies behind
+    notes: str = ""  # e.g. "corner-stack carries vs hook units"
+
+
 class Comp(BaseModel):
     slug: str
     name: str
@@ -40,6 +48,9 @@ class Comp(BaseModel):
     strategy: str = ""  # e.g. "Fast 8 tempo", "Slow roll at 7"
     reroll_level: int | None = None
     pivot_slugs: list[str] = Field(default_factory=list)  # suggested fallbacks
+    positioning: Positioning = Field(default_factory=Positioning)
+    substitutes: dict[str, list[str]] = Field(default_factory=dict)  # unit -> fallback units
+    endgame: str = ""  # late-game upgrade plan (e.g. "at 9 add legendary X")
     unit_costs: dict[str, int] = Field(default_factory=dict)  # unit name -> shop cost
     avg_place: float | None = None  # meta-site placement stats
     top4: float | None = None  # top-4 rate, 0..1
@@ -75,6 +86,14 @@ class Comp(BaseModel):
             parts.append(f"play when: {when}")
         if self.strategy:
             parts.append(f"strategy: {self.strategy}")
+        pos = _positioning_terms(self.positioning)
+        if pos:
+            parts.append(f"positioning: {pos}")
+        if self.substitutes:
+            subs = "; ".join(f"{u} -> {', '.join(s)}" for u, s in self.substitutes.items())
+            parts.append(f"substitutes: {subs}")
+        if self.endgame:
+            parts.append(f"endgame: {self.endgame}")
         stats = []
         if self.avg_place is not None:
             stats.append(f"avg place {self.avg_place}")
@@ -114,6 +133,17 @@ def _condition_terms(conditions: CompConditions) -> str:
     if conditions.econ:
         bits.append(f"{conditions.econ} game plan")
     return ", ".join(bits)
+
+
+def _positioning_terms(pos: Positioning) -> str:
+    bits: list[str] = []
+    if pos.frontline:
+        bits.append(f"front: {', '.join(pos.frontline)}")
+    if pos.backline:
+        bits.append(f"back: {', '.join(pos.backline)}")
+    if pos.notes:
+        bits.append(pos.notes)
+    return " · ".join(bits)
 
 
 _COND_WEIGHTS = {"openers": 0.45, "items": 0.30, "augments": 0.25}

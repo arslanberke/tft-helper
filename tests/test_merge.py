@@ -29,3 +29,34 @@ def test_manual_comps_survive() -> None:
 def test_unknown_tiers_dont_crash_consensus() -> None:
     comp = Comp(slug="c", name="C", sources=[SourceRating(site="s", tier="?")])
     assert comp.consensus_tier() == "?"
+
+
+def test_positioning_and_substitutes_merge_across_sites() -> None:
+    a = [
+        RawComp(
+            site="tftacademy",
+            slug="x",
+            name="X",
+            positioning={"frontline": ["tank"], "notes": "spread"},
+            substitutes={"tank": ["other tank"]},
+            endgame="cap at 9",
+        )
+    ]
+    b = [
+        RawComp(
+            site="mobalytics",
+            slug="x",
+            name="X",
+            positioning={"backline": ["carry"]},
+            substitutes={"carry": ["alt carry"], "tank": ["backup tank"]},
+            endgame="different note",
+        )
+    ]
+    comp = merge_sources([a, b])[0]
+
+    assert comp.positioning.frontline == ["tank"]
+    assert comp.positioning.backline == ["carry"]
+    assert comp.positioning.notes == "spread"
+    assert set(comp.substitutes["tank"]) == {"other tank", "backup tank"}
+    assert comp.substitutes["carry"] == ["alt carry"]
+    assert comp.endgame == "cap at 9"  # first non-empty wins

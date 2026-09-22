@@ -45,7 +45,8 @@ def build_questions(state: GameState, comps: list[Comp]) -> list[Question]:
                     "to? Each comp lists its 'play when' conditions — prefer the comps whose "
                     "openers, item needs and augment triggers best match the current state. "
                     "Downweight comps that opponents are clearly contesting (rival boards are "
-                    "listed under opponents), and downweight strong comps whose entry "
+                    "listed under opponents; the ones likely up next are under "
+                    "likely_next_opponents), and downweight strong comps whose entry "
                     "conditions are unmet: forcing a comp with no setup loses more LP than "
                     "playing a slightly weaker comp that is already online."
                 ),
@@ -100,6 +101,26 @@ def build_questions(state: GameState, comps: list[Comp]) -> list[Question]:
                     "Consider contested lines (an uncontested B-tier often outperforms a "
                     "contested S-tier), item fit, unmet 'play when' conditions, and whether "
                     "a listed comp sharing the current units is clearly better."
+                ),
+            )
+        )
+
+    informed = [
+        o for o in state.next_opponent_candidates() if o.units or o.name
+    ]
+    if informed and state.stage_num >= 2:
+        questions.append(
+            Question(
+                id="prep",
+                kind="noul",
+                instructions=(
+                    "Given the likely next opponents (listed under "
+                    "likely_next_opponents — TFT matchmaking can't redraw the "
+                    "recently fought ones), should the player adjust board "
+                    "positioning or itemization to prepare? High when a likely "
+                    "opponent's comp punishes the current layout (e.g. assassin "
+                    "dive vs cornered carries, AoE vs clumping); low when the "
+                    "standard positioning already covers it."
                 ),
             )
         )
