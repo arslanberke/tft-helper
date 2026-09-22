@@ -227,6 +227,19 @@ const SERVICE_URL = "http://127.0.0.1:8371";
 // Manual scout: the user inspected a rival's board in-game and types what
 // they saw — GEP never exposes opponent boards, so this is the only way
 // rival unit data reaches the service.
+function sendScout(name, units) {
+  const msg = el("scout-msg");
+  const send = (id) =>
+    overwolf.windows.sendMessage(id, "scout", { name, units }, (res) => {
+      msg.textContent =
+        res && res.success !== false ? `scouted ${name}` : "send failed";
+    });
+  overwolf.windows.obtainDeclaredWindow("background", (res) => {
+    if (res && res.success && res.window) send(res.window.id);
+    else msg.textContent = "background not reachable";
+  });
+}
+
 el("scout-save").addEventListener("click", () => {
   const name = el("s-name").value.trim();
   const msg = el("scout-msg");
@@ -238,15 +251,34 @@ el("scout-save").addEventListener("click", () => {
     .split(/[,\n]/)
     .map((s) => s.trim())
     .filter(Boolean);
-  const send = (id) =>
-    overwolf.windows.sendMessage(id, "scout", { name, units }, (res) => {
-      msg.textContent =
-        res && res.success !== false ? `scouted ${name}` : "send failed";
-    });
-  overwolf.windows.obtainDeclaredWindow("background", (res) => {
-    if (res && res.success && res.window) send(res.window.id);
-    else msg.textContent = "background not reachable";
-  });
+  sendScout(name, units);
+});
+
+// Auto-scan: the service screenshots the on-screen rival board and matches
+// champion tiles — no manual typing needed. Fill the rival name, open their
+// board in-game, click once.
+el("scout-scan").addEventListener("click", async () => {
+  const name = el("s-name").value.trim();
+  const msg = el("scout-msg");
+  if (!name) {
+    msg.textContent = "rival name required";
+    return;
+  }
+  msg.textContent = "scanning…";
+  try {
+    const resp = await fetch(`${SERVICE_URL}/scout`, { method: "POST" });
+    if (!resp.ok) throw new Error(await resp.text());
+    const data = await resp.json();
+    const units = data.units || [];
+    if (!units.length) {
+      msg.textContent = `nothing detected — check TFT_BOARD_REGION (${data.debug_shot || "no debug shot"})`;
+      return;
+    }
+    el("s-units").value = units.join(", ");
+    sendScout(name, units);
+  } catch (err) {
+    msg.textContent = `scan failed: ${String(err).slice(0, 100)}`;
+  }
 });
 
 el("builder-toggle").addEventListener("click", () => {

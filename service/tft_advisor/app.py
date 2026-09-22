@@ -21,6 +21,8 @@ from .comps import (
 from .engines import Engine, FusedAnswer, build_default_engine
 from .odds import roll_window
 from .questions import FLEX_SLUG, build_questions
+from .scout import available as scout_available
+from .scout import scout_board
 from .sources.base import slugify
 from .state import GameState
 
@@ -201,6 +203,21 @@ def create_app() -> FastAPI:
             else [engine.name]
         )
         return {"ok": True, "engines": engines, "comps": len(_library())}
+
+    @app.post("/scout")
+    def scout() -> dict:
+        """Screen-scout the rival board currently shown in-game: capture the
+        board region, template-match champion tiles, return the unit names.
+        Returns 503 until `.[scout]` extras + icons are installed."""
+        if not scout_available():
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "scout extras missing — run: pip install -e '.[scout]' "
+                    "&& python -m service.scripts.fetch_champ_icons"
+                ),
+            )
+        return scout_board()
 
     @app.post("/advice", response_model=AdviceResponse)
     def advice(req: AdviceRequest) -> AdviceResponse:

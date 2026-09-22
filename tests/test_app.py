@@ -272,3 +272,27 @@ def test_post_fight_and_opponent_health(monkeypatch) -> None:
     )
     assert resp.status_code == 200
     assert resp.json()["post_fight"] is not None
+
+
+def test_scout_endpoint_without_extras_returns_503(monkeypatch) -> None:
+    import tft_advisor.scout as scout_mod
+
+    monkeypatch.setattr(scout_mod, "available", lambda: False)
+    client = TestClient(create_app())
+    resp = client.post("/scout")
+    assert resp.status_code == 503
+
+
+def test_scout_endpoint_returns_detected_units(monkeypatch) -> None:
+    import tft_advisor.app as app_mod
+
+    monkeypatch.setattr(app_mod, "scout_available", lambda: True)
+    monkeypatch.setattr(
+        app_mod,
+        "scout_board",
+        lambda: {"units": ["Ahri", "Sett"], "cells": [], "debug_shot": "/tmp/x.png"},
+    )
+    client = TestClient(create_app())
+    resp = client.post("/scout")
+    assert resp.status_code == 200
+    assert resp.json()["units"] == ["Ahri", "Sett"]
