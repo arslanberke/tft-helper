@@ -105,6 +105,25 @@ def build_questions(state: GameState, comps: list[Comp]) -> list[Question]:
             )
         )
 
+    if state.items:
+        questions.append(
+            Question(
+                id="slam",
+                kind="noul",
+                instructions=(
+                    "Should the player slam the components/items sitting on their bench "
+                    "right now, or hold them for a better-in-slot combination later? Slam "
+                    "high when: the board is bleeding HP and any combat item stabilizes it, "
+                    "the player is on a win streak worth protecting with tempo, or an early "
+                    "item-holder unit (a comp's item_holders entry) is already on the board "
+                    "so items can move to the real carry later. Hold when: key BiS "
+                    "components are one piece away and the board is winning anyway, or the "
+                    "comp's item plan says it is BiS-dependent. The chosen comp's "
+                    "'item plan' and 'item priority' lines describe its preferred policy."
+                ),
+            )
+        )
+
     informed = [
         o for o in state.next_opponent_candidates() if o.units or o.name
     ]

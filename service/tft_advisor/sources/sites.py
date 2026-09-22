@@ -141,6 +141,15 @@ def parse_generic(site: str) -> Callable[[dict], list[RawComp]]:
             substitutes = entry.get("substitutes") or entry.get("replacements") or {}
             if not isinstance(substitutes, dict):
                 substitutes = {}
+            tank_items = entry.get("tank_items") or {}
+            if not isinstance(tank_items, dict):
+                tank_items = {}
+            item_holders = entry.get("item_holders") or entry.get("holders") or {}
+            if not isinstance(item_holders, dict):
+                item_holders = {}
+            item_priority = entry.get("item_priority") or entry.get("carousel_priority") or []
+            if not isinstance(item_priority, list):
+                item_priority = []
             raw_units = entry.get("units") or []
             units: list[str] = []
             unit_costs: dict[str, int] = {}
@@ -168,6 +177,16 @@ def parse_generic(site: str) -> Callable[[dict], list[RawComp]]:
                         for k, v in substitutes.items()
                     },
                     endgame=str(entry.get("endgame") or entry.get("late_game") or ""),
+                    tank_items={
+                        str(k): [str(s) for s in (v if isinstance(v, list) else [v])]
+                        for k, v in tank_items.items()
+                    },
+                    item_priority=[str(i) for i in item_priority],
+                    item_holders={
+                        str(k): [str(s) for s in (v if isinstance(v, list) else [v])]
+                        for k, v in item_holders.items()
+                    },
+                    item_plan=str(entry.get("item_plan") or entry.get("slam") or ""),
                     unit_costs=unit_costs,
                     avg_place=_num(entry, "avg_place", "average_place", "placement"),
                     top4=_rate(entry, "top4", "top4_rate"),

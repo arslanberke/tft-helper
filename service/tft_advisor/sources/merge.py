@@ -4,6 +4,22 @@ from ..comps import Comp, SourceRating
 from .base import RawComp
 
 
+def _merge_items(target: Comp, source) -> None:
+    """Itemization fields (tank items, priority, holders, plan) merge like the
+    other union/first-wins fields."""
+    for tank, items in getattr(source, "tank_items", {}).items():
+        merged = set(target.tank_items.get(tank, [])) | set(items)
+        target.tank_items[tank] = sorted(merged)
+    target.item_priority = list(
+        dict.fromkeys([*target.item_priority, *getattr(source, "item_priority", [])])
+    )
+    for carry, holders in getattr(source, "item_holders", {}).items():
+        merged = target.item_holders.get(carry, []) + list(holders)
+        target.item_holders[carry] = list(dict.fromkeys(merged))
+    if getattr(source, "item_plan", "") and not target.item_plan:
+        target.item_plan = source.item_plan
+
+
 def merge_sources(raw_groups: list[list[RawComp]], manual: list[Comp] | None = None) -> list[Comp]:
     """Merge per-site RawComp lists into one Comp per slug.
 
@@ -66,6 +82,7 @@ def merge_sources(raw_groups: list[list[RawComp]], manual: list[Comp] | None = N
             target.substitutes[unit] = list(dict.fromkeys([*existing, *subs]))
         if comp.endgame and not target.endgame:
             target.endgame = comp.endgame
+        _merge_items(target, comp)
         target.sources.extend(comp.sources)
 
     for group in raw_groups:
@@ -85,6 +102,7 @@ def merge_sources(raw_groups: list[list[RawComp]], manual: list[Comp] | None = N
                 comp.substitutes[unit] = list(dict.fromkeys([*existing, *subs]))
             if raw.endgame and not comp.endgame:
                 comp.endgame = raw.endgame
+            _merge_items(comp, raw)
             for unit, cost in raw.unit_costs.items():
                 comp.unit_costs.setdefault(unit, cost)
             for stat in ("avg_place", "top4", "pick_rate"):

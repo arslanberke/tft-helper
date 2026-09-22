@@ -49,6 +49,10 @@ class CompAdvice(BaseModel):
     endgame: str = ""
     units: list[str] = Field(default_factory=list)  # full comp roster
     carry_items: dict[str, list[str]] = Field(default_factory=dict)
+    tank_items: dict[str, list[str]] = Field(default_factory=dict)
+    item_priority: list[str] = Field(default_factory=list)
+    item_holders: dict[str, list[str]] = Field(default_factory=dict)
+    item_plan: str = ""
 
 
 class ShopMark(BaseModel):
@@ -68,6 +72,8 @@ class AdviceResponse(BaseModel):
     augment: dict | None = None
     pivot: float | None = None
     prep: float | None = None
+    slam: float | None = None
+    carousel: dict | None = None  # best pick from the carousel wheel, if known
     shop: list[ShopMark] = Field(default_factory=list)
     next_opponents: list[NextOpponent] = Field(default_factory=list)
     last_fought: str = ""
@@ -159,6 +165,29 @@ def _shop_marks(state: GameState, top: Comp | None) -> list[ShopMark]:
     return marks
 
 
+def _carousel_pick(state: GameState, top: Comp | None) -> dict | None:
+    """Best item to take off the carousel wheel: the comp's item_priority
+    ranks the options; pairs for owned units are the fallback signal."""
+    if not state.carousel_items:
+        return None
+    priority = [p.lower() for p in (top.item_priority if top else [])]
+
+    def rank(item: str) -> int:
+        key = item.lower()
+        for i, p in enumerate(priority):
+            if p in key or key in p:
+                return i
+        return len(priority)
+
+    best = min(state.carousel_items, key=rank)
+    idx = rank(best)
+    return {
+        "item": best,
+        "rank": idx + 1 if idx < len(priority) else None,
+        "options": list(state.carousel_items),
+    }
+
+
 def create_app() -> FastAPI:
     app = FastAPI(title="TFT Comp Advisor")
 
@@ -236,6 +265,10 @@ def create_app() -> FastAPI:
                             endgame=comp.endgame,
                             units=comp.units,
                             carry_items=comp.carry_items,
+                            tank_items=comp.tank_items,
+                            item_priority=comp.item_priority,
+                            item_holders=comp.item_holders,
+                            item_plan=comp.item_plan,
                         )
                     )
                 if len(comp_advice) >= req.top_n:
@@ -259,10 +292,12 @@ def create_app() -> FastAPI:
 
         pivot = fused["pivot"].noul if "pivot" in fused else None
         prep = fused["prep"].noul if "prep" in fused else None
+        slam = fused["slam"].noul if "slam" in fused else None
 
         top_comp = comp_advice[0] if comp_advice else None
         top = by_slug.get(top_comp.slug) if top_comp else None
         shop = _shop_marks(state, top)
+        carousel = _carousel_pick(state, top)
         next_ops = [
             NextOpponent(
                 name=o.name or "?",
@@ -287,6 +322,8 @@ def create_app() -> FastAPI:
             augment=augment,
             pivot=pivot,
             prep=prep,
+            slam=slam,
+            carousel=carousel,
             shop=shop,
             next_opponents=next_ops,
             last_fought=state.fought_opponents[-1] if state.fought_opponents else "",

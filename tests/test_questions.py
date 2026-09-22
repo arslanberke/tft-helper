@@ -73,3 +73,12 @@ def test_prep_question_gated_on_opponents_and_stage() -> None:
     )
     prep = next(q for q in build_questions(fought, _comps()) if q.id == "prep")
     assert "likely_next_opponents" in prep.instructions
+
+
+def test_slam_question_gated_on_bench_items() -> None:
+    assert "slam" not in {q.id for q in build_questions(GameState(), _comps())}
+
+    state = GameState(items=["bow", "rod"])
+    qs = {q.id: q for q in build_questions(state, _comps())}
+    assert "slam" in qs
+    assert qs["slam"].kind == "noul"

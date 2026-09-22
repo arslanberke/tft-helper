@@ -210,3 +210,45 @@ def test_create_comp_requires_name(monkeypatch, tmp_path) -> None:
 
     client = TestClient(create_app())
     assert client.post("/comps", json={"name": "  "}).status_code == 422
+
+
+def test_itemization_fields_and_carousel_pick(monkeypatch) -> None:
+    monkeypatch.setenv("TFT_ENGINE", "mock")
+    _engine.cache_clear()
+    _library.cache_clear()
+
+    client = TestClient(create_app())
+    resp = client.post(
+        "/advice",
+        json={
+            "state": {
+                "stage": "3-2",
+                "board": [{"name": "4-cost carry"}],
+                "items": ["spare component"],
+                "carousel_items": ["hp item", "bis 1", "unrelated item"],
+            }
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["slam"] is not None  # bench has items -> slam question fires
+    top = body["comps"][0]
+    assert top["tank_items"]
+    assert top["item_priority"]
+    assert top["item_holders"]
+    assert top["item_plan"]
+    car = body["carousel"]
+    assert car is not None
+    assert car["item"] == "bis 1"  # highest item_priority match on the wheel
+    assert car["rank"] == 1
+
+
+def test_carousel_absent_without_wheel_data(monkeypatch) -> None:
+    monkeypatch.setenv("TFT_ENGINE", "mock")
+    _engine.cache_clear()
+    _library.cache_clear()
+
+    client = TestClient(create_app())
+    resp = client.post("/advice", json={"state": {"stage": "3-2"}})
+    assert resp.status_code == 200
+    assert resp.json()["carousel"] is None

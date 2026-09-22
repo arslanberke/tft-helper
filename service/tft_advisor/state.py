@@ -40,6 +40,7 @@ class GameState(BaseModel):
     items: list[str] = Field(default_factory=list)  # loose components/items on bench
     offered_augments: list[str] = Field(default_factory=list)
     picked_augments: list[str] = Field(default_factory=list)
+    carousel_items: list[str] = Field(default_factory=list)  # items on the carousel wheel
     opponents: list[Opponent] = Field(default_factory=list)
     fought_opponents: list[str] = Field(default_factory=list)  # names in order fought (latest last)
 
@@ -79,6 +80,7 @@ class GameState(BaseModel):
             "items": self.items,
             "offered_augments": self.offered_augments,
             "picked_augments": self.picked_augments,
+            "carousel_items": self.carousel_items,
             "opponents": [o.describe() for o in self.opponents],
             "fought_opponents": self.fought_opponents,
             "likely_next_opponents": [

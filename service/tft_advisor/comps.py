@@ -51,6 +51,10 @@ class Comp(BaseModel):
     positioning: Positioning = Field(default_factory=Positioning)
     substitutes: dict[str, list[str]] = Field(default_factory=dict)  # unit -> fallback units
     endgame: str = ""  # late-game upgrade plan (e.g. "at 9 add legendary X")
+    tank_items: dict[str, list[str]] = Field(default_factory=dict)  # tank -> items
+    item_priority: list[str] = Field(default_factory=list)  # ordered component wish-list
+    item_holders: dict[str, list[str]] = Field(default_factory=dict)  # carry -> early holders
+    item_plan: str = ""  # slam-early vs hold-for-BiS guidance
     unit_costs: dict[str, int] = Field(default_factory=dict)  # unit name -> shop cost
     avg_place: float | None = None  # meta-site placement stats
     top4: float | None = None  # top-4 rate, 0..1
@@ -94,6 +98,18 @@ class Comp(BaseModel):
             parts.append(f"substitutes: {subs}")
         if self.endgame:
             parts.append(f"endgame: {self.endgame}")
+        if self.tank_items:
+            tanks = "; ".join(f"{c} -> {', '.join(i)}" for c, i in self.tank_items.items())
+            parts.append(f"tank items: {tanks}")
+        if self.item_priority:
+            parts.append(f"item priority: {' > '.join(self.item_priority)}")
+        if self.item_holders:
+            holders = "; ".join(
+                f"{h} holds for {c}" for c, hs in self.item_holders.items() for h in hs
+            )
+            parts.append(f"item holders: {holders}")
+        if self.item_plan:
+            parts.append(f"item plan: {self.item_plan}")
         stats = []
         if self.avg_place is not None:
             stats.append(f"avg place {self.avg_place}")

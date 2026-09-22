@@ -27,6 +27,10 @@ class RawComp:
     positioning: dict = field(default_factory=dict)
     substitutes: dict[str, list[str]] = field(default_factory=dict)  # unit -> fallbacks
     endgame: str = ""  # late-game upgrade plan
+    tank_items: dict[str, list[str]] = field(default_factory=dict)
+    item_priority: list[str] = field(default_factory=list)
+    item_holders: dict[str, list[str]] = field(default_factory=dict)
+    item_plan: str = ""
     unit_costs: dict[str, int] = field(default_factory=dict)
     avg_place: float | None = None
     top4: float | None = None

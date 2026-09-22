@@ -27,6 +27,10 @@
         "flex unit": ["any cheap trait unit"]
       },
       "endgame": "after carry 3*, level up and add a 5-cost utility unit",
+      "tank_items": {"frontline bot": ["armor item", "hp item"]},
+      "item_priority": ["attack speed item", "damage item", "survivability item", "armor item"],
+      "item_holders": {"low-cost carry": ["trait bot"]},
+      "item_plan": "slam damage items on the holder early — reroll comps want tempo, not BiS",
       "unit_costs": {"low-cost carry": 1, "frontline bot": 1, "trait bot": 2, "flex unit": 3},
       "avg_place": 3.8,
       "top4": 0.61,
@@ -58,6 +62,10 @@
         "utility unit": ["trait unit 3"]
       },
       "endgame": "on 9, drop utility unit for a 5-cost pair or a second copy of the carry",
+      "tank_items": {"4-cost tank": ["armor item", "mr item", "hp item"]},
+      "item_priority": ["bis 1", "bis 2", "armor item", "hp item"],
+      "item_holders": {"4-cost carry": ["support unit", "utility unit"]},
+      "item_plan": "hold components for carry BiS on a win streak; slam defensives on the tank when bleeding HP",
       "unit_costs": {"4-cost carry": 4, "4-cost tank": 4, "support unit": 3, "utility unit": 2},
       "avg_place": 3.1,
       "top4": 0.74,
@@ -87,6 +95,10 @@
         "emblem holder": ["trait unit 3"]
       },
       "endgame": "trait cap at 8/9 with the vertical's 5-cost unit",
+      "tank_items": {"trait unit 1": ["hp item"]},
+      "item_priority": ["emblem", "damage item"],
+      "item_holders": {"emblem holder": ["trait unit 3"]},
+      "item_plan": "emblem is mandatory — everything else can slam freely",
       "unit_costs": {"trait unit 1": 2, "trait unit 2": 3, "trait unit 3": 4, "emblem holder": 4},
       "avg_place": 4.4,
       "top4": 0.48,

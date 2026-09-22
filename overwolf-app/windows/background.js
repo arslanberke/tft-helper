@@ -44,6 +44,7 @@ function freshState() {
     items: [],
     offered_augments: [],
     picked_augments: [],
+    carousel_items: [],
     opponents: [],
     fought_opponents: [],
   };
@@ -130,6 +131,17 @@ function applyKV(category, key, rawValue) {
       if (key === "items" || key === "inventory" || key === "bench_items")
         gameState.items = asList(value).map((i) =>
           typeof i === "object" ? i.name || i.apiName || "" : String(i)
+        );
+      break;
+    case "carousel":
+      if (
+        key === "carousel" ||
+        key === "carousel_items" ||
+        key === "available_items" ||
+        key === "items"
+      )
+        gameState.carousel_items = asList(value).map((i) =>
+          typeof i === "object" ? i.name || i.item || i.apiName || String(i) : String(i)
         );
       break;
     case "augments":

@@ -94,6 +94,15 @@ function renderAdvice(advice) {
     const items = Object.entries(c.carry_items || {});
     if (items.length)
       bits.push(`items: ${items.map(([u, i]) => `${u}: ${i.join("/")}`).join("; ")}`);
+    const tanks = Object.entries(c.tank_items || {});
+    if (tanks.length)
+      bits.push(`tank: ${tanks.map(([u, i]) => `${u}: ${i.join("/")}`).join("; ")}`);
+    const holders = Object.entries(c.item_holders || {});
+    if (holders.length)
+      bits.push(
+        `holders: ${holders.map(([u, h]) => `${h.join("/")} → ${u}`).join("; ")}`
+      );
+    if (c.item_plan) bits.push(`item plan: ${c.item_plan}`);
     const missing = (c.missing_units || [])[0];
     if (missing)
       bits.push(
@@ -137,6 +146,24 @@ function renderAdvice(advice) {
     prepEl.style.color = "#ffbe5a";
   } else {
     prepEl.textContent = "";
+  }
+
+  const slamEl = el("slam");
+  if (typeof advice.slam === "number") {
+    const pct = Math.round(advice.slam * 100);
+    slamEl.textContent = pct >= 50 ? `Slam items now: ${pct}%` : `Hold items for BiS: ${100 - pct}%`;
+    slamEl.style.color = pct >= 50 ? "#7ddba3" : "#9fb3d8";
+  } else {
+    slamEl.textContent = "";
+  }
+
+  const carEl = el("carousel");
+  if (advice.carousel && advice.carousel.item) {
+    const r = advice.carousel.rank ? ` (#${advice.carousel.rank} prio)` : "";
+    carEl.textContent = `Carousel → take ${advice.carousel.item}${r}`;
+    carEl.style.color = "#a8c7ff";
+  } else {
+    carEl.textContent = "";
   }
 
   const econEl = el("econ");
