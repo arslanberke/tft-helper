@@ -82,3 +82,12 @@ def test_slam_question_gated_on_bench_items() -> None:
     qs = {q.id: q for q in build_questions(state, _comps())}
     assert "slam" in qs
     assert qs["slam"].kind == "noul"
+
+
+def test_post_fight_question_gated_on_last_result() -> None:
+    assert "post_fight" not in {q.id for q in build_questions(GameState(), _comps())}
+
+    state = GameState(last_result="defeat")
+    qs = {q.id: q for q in build_questions(state, _comps())}
+    assert "post_fight" in qs
+    assert qs["post_fight"].kind == "noul"

@@ -19,10 +19,21 @@ class Opponent(BaseModel):
 
     name: str = ""
     units: list[Unit] = Field(default_factory=list)
+    health: int | None = None
+    xp: int | None = None
+    last_result: str = ""  # victory | defeat from the previous round
 
     def describe(self) -> str:
+        stats = []
+        if self.health is not None:
+            stats.append(f"{self.health}hp")
+        if self.xp is not None:
+            stats.append(f"lvl{self.xp}")
+        if self.last_result:
+            stats.append(self.last_result)
+        meta = f" ({', '.join(stats)})" if stats else ""
         board = ", ".join(u.describe() for u in self.units)
-        return f"{self.name}: {board}" if board else self.name
+        return f"{self.name}{meta}: {board}" if board else f"{self.name}{meta}"
 
 
 class GameState(BaseModel):
@@ -41,6 +52,7 @@ class GameState(BaseModel):
     offered_augments: list[str] = Field(default_factory=list)
     picked_augments: list[str] = Field(default_factory=list)
     carousel_items: list[str] = Field(default_factory=list)  # items on the carousel wheel
+    last_result: str = ""  # our outcome of the previous round: victory | defeat
     opponents: list[Opponent] = Field(default_factory=list)
     fought_opponents: list[str] = Field(default_factory=list)  # names in order fought (latest last)
 
@@ -81,6 +93,7 @@ class GameState(BaseModel):
             "offered_augments": self.offered_augments,
             "picked_augments": self.picked_augments,
             "carousel_items": self.carousel_items,
+            "last_result": self.last_result,
             "opponents": [o.describe() for o in self.opponents],
             "fought_opponents": self.fought_opponents,
             "likely_next_opponents": [

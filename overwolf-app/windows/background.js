@@ -45,6 +45,8 @@ function freshState() {
     offered_augments: [],
     picked_augments: [],
     carousel_items: [],
+    last_result: "",
+    me_name: "",
     opponents: [],
     fought_opponents: [],
   };
@@ -65,6 +67,9 @@ function normOpponent(raw) {
   return {
     name: raw.name || raw.summoner || raw.summoner_name || raw.tag_line || "",
     units,
+    health: typeof raw.health === "number" ? raw.health : null,
+    xp: typeof raw.xp === "number" ? raw.xp : null,
+    last_result: raw.last_result || "",
   };
 }
 
@@ -91,6 +96,8 @@ function applyKV(category, key, rawValue) {
         gameState.items = asList(value).map((i) =>
           typeof i === "object" ? i.name || i.apiName || "" : String(i)
         );
+      else if (key === "summoner_name" || key === "name")
+        gameState.me_name = String(value);
       break;
     case "match_info":
       if (key === "round_type") gameState.round_type = String(value);
@@ -99,6 +106,28 @@ function applyKV(category, key, rawValue) {
       else if (key === "stage" || key === "round") gameState.stage = String(value);
       else if (key === "opponents")
         gameState.opponents = asList(value).map(normOpponent);
+      else if (key === "round_outcome") {
+        const results = typeof value === "object" ? value : {};
+        Object.entries(results).forEach(([pname, r]) => {
+          const outcome = r && r.outcome ? String(r.outcome) : "";
+          if (!outcome) return;
+          if (pname === gameState.me_name) {
+            gameState.last_result = outcome;
+            return;
+          }
+          const opp = gameState.opponents.find((o) => o.name === pname);
+          if (opp) opp.last_result = outcome;
+        });
+      } else if (key === "opponent") {
+        const name =
+          typeof value === "object" ? normOpponent(value).name : String(value);
+        if (
+          name &&
+          gameState.fought_opponents[gameState.fought_opponents.length - 1] !==
+            name
+        )
+          gameState.fought_opponents.push(name);
+      }
       else if (
         key === "last_opponent" ||
         key === "opponent_fought" ||
@@ -140,9 +169,24 @@ function applyKV(category, key, rawValue) {
         key === "available_items" ||
         key === "items"
       )
-        gameState.carousel_items = asList(value).map((i) =>
-          typeof i === "object" ? i.name || i.item || i.apiName || String(i) : String(i)
-        );
+        gameState.carousel_items = asList(value).map((i) => {
+          if (typeof i !== "object") return String(i);
+          const item = i.item_1 || i.item || "";
+          const on = i.name || i.apiName || "";
+          return item && item !== "0"
+            ? `${item} (${on})`
+            : on || String(i);
+        });
+      else if (key === "carousel_pieces") {
+        const slots = typeof value === "object" ? Object.values(value) : [];
+        gameState.carousel_items = slots.map((i) => {
+          const item = i.item_1 || i.item || "";
+          const on = i.name || i.apiName || "";
+          return item && item !== "0"
+            ? `${item} (${on})`
+            : on || String(i);
+        });
+      }
       break;
     case "augments":
       if (key === "picked" || key === "augments" || key === "player_augments")
@@ -153,7 +197,21 @@ function applyKV(category, key, rawValue) {
         );
       break;
     case "roster":
-      if (key === "roster_players" || key === "players")
+      if (key === "player_status") {
+        const players = typeof value === "object" ? value : {};
+        gameState.opponents = Object.entries(players)
+          .filter(([, p]) => !p.localplayer)
+          .map(([pname, p]) => ({
+            name: pname,
+            units: (p.units || p.board || []).map(normUnit),
+            health: typeof p.health === "number" ? p.health : null,
+            xp: typeof p.xp === "number" ? p.xp : null,
+            last_result: "",
+          }))
+          .filter((o) => o.name);
+        const me = Object.entries(players).find(([, p]) => p.localplayer);
+        if (me) gameState.me_name = me[0];
+      } else if (key === "roster_players" || key === "players")
         gameState.opponents = asList(value)
           .map(normOpponent)
           .filter((o) => o.name || o.units.length);

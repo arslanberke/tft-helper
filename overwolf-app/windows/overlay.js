@@ -166,6 +166,18 @@ function renderAdvice(advice) {
     carEl.textContent = "";
   }
 
+  const pfEl = el("postfight");
+  if (typeof advice.post_fight === "number") {
+    const pct = Math.round(advice.post_fight * 100);
+    pfEl.textContent =
+      pct >= 50
+        ? `React to last fight: ${pct}% — adjust plan`
+        : `Stay the course after last fight: ${100 - pct}%`;
+    pfEl.style.color = pct >= 50 ? "#ffbe5a" : "#9fb3d8";
+  } else {
+    pfEl.textContent = "";
+  }
+
   const econEl = el("econ");
   econEl.innerHTML = "";
   el("econ-title").hidden = !advice.econ;

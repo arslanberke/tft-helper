@@ -252,3 +252,23 @@ def test_carousel_absent_without_wheel_data(monkeypatch) -> None:
     resp = client.post("/advice", json={"state": {"stage": "3-2"}})
     assert resp.status_code == 200
     assert resp.json()["carousel"] is None
+
+
+def test_post_fight_and_opponent_health(monkeypatch) -> None:
+    monkeypatch.setenv("TFT_ENGINE", "mock")
+    _engine.cache_clear()
+    _library.cache_clear()
+
+    client = TestClient(create_app())
+    resp = client.post(
+        "/advice",
+        json={
+            "state": {
+                "stage": "3-2",
+                "last_result": "defeat",
+                "opponents": [{"name": "rival", "health": 60, "xp": 6}],
+            }
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.json()["post_fight"] is not None

@@ -73,6 +73,7 @@ class AdviceResponse(BaseModel):
     pivot: float | None = None
     prep: float | None = None
     slam: float | None = None
+    post_fight: float | None = None
     carousel: dict | None = None  # best pick from the carousel wheel, if known
     shop: list[ShopMark] = Field(default_factory=list)
     next_opponents: list[NextOpponent] = Field(default_factory=list)
@@ -293,6 +294,7 @@ def create_app() -> FastAPI:
         pivot = fused["pivot"].noul if "pivot" in fused else None
         prep = fused["prep"].noul if "prep" in fused else None
         slam = fused["slam"].noul if "slam" in fused else None
+        post_fight = fused["post_fight"].noul if "post_fight" in fused else None
 
         top_comp = comp_advice[0] if comp_advice else None
         top = by_slug.get(top_comp.slug) if top_comp else None
@@ -323,6 +325,7 @@ def create_app() -> FastAPI:
             pivot=pivot,
             prep=prep,
             slam=slam,
+            post_fight=post_fight,
             carousel=carousel,
             shop=shop,
             next_opponents=next_ops,

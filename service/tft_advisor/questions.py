@@ -124,6 +124,27 @@ def build_questions(state: GameState, comps: list[Comp]) -> list[Question]:
             )
         )
 
+    if state.last_result:
+        questions.append(
+            Question(
+                id="post_fight",
+                kind="noul",
+                instructions=(
+                    "A fight just resolved — the state's 'last_result' field says whether "
+                    "the player won or lost the previous round. Should the player change "
+                    "plan in reaction to that result? Score high when the result should "
+                    "alter the next decisions: after a loss consider whether the board needs "
+                    "immediate power (roll window, slam bench items onto the holder, "
+                    "reposition for the likely next opponents) versus staying the course "
+                    "because the loss was positioning variance; after a win consider "
+                    "protecting the streak with tempo versus greedier econ. Weigh HP, "
+                    "gold/level, the win/loss streak, and how strong the likely next "
+                    "opponents look. Score low when the correct move is to keep the "
+                    "current plan unchanged."
+                ),
+            )
+        )
+
     informed = [
         o for o in state.next_opponent_candidates() if o.units or o.name
     ]
