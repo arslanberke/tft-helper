@@ -1,0 +1,42 @@
+{
+  "manifest_version": 1,
+  "type": "WebApp",
+  "meta": {
+    "name": "TFT Comp Advisor",
+    "author": "arslanberke",
+    "version": "0.1.0",
+    "minimum-overwolf-version": "0.141.0.1",
+    "description": "Live comp / econ / augment advice for Teamfight Tactics, powered by consensus System-1 decision models.",
+    "dock_button_title": "Comp Advisor"
+  },
+  "permissions": ["GameInfo", "Hotkeys"],
+  "data": {
+    "game_targeting": {
+      "type": "dedicated",
+      "game_ids": [5426]
+    },
+    "start_window": "background",
+    "windows": {
+      "background": {
+        "file": "windows/background.html",
+        "is_background_page": true,
+        "show_in_taskbar": false
+      },
+      "overlay": {
+        "file": "windows/overlay.html",
+        "transparent": true,
+        "in_game_only": true,
+        "clickthrough": false,
+        "show_in_taskbar": false,
+        "resizable": false,
+        "size": { "width": 400, "height": 520 },
+        "start_position": { "top": "12%", "left": "75%" },
+        "keep_window_location": true,
+        "block_top_window_navigation": true
+      }
+    },
+    "externally_connectable": {
+      "matches": ["http://localhost:*", "http://127.0.0.1:*"]
+    }
+  }
+}

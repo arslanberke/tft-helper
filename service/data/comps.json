@@ -1,0 +1,32 @@
+{
+  "_note": "Seeded example comps so the pipeline runs out of the box. Regenerate from real meta sites via scripts/build_comp_library.py once sources.json endpoints are configured.",
+  "comps": [
+    {
+      "slug": "example-reroll-carry",
+      "name": "1-cost Reroll Carry (example)",
+      "units": ["low-cost carry", "frontline bot", "trait bot", "flex unit"],
+      "traits": ["carry trait", "frontline trait"],
+      "carry_items": {"low-cost carry": ["damage item", "attack speed item", "survivability item"]},
+      "augment_priority": ["combat augment", "econ reroll augment"],
+      "sources": [{"site": "seed", "tier": "A"}]
+    },
+    {
+      "slug": "example-fast-8-flex",
+      "name": "Fast 8 Flex (example)",
+      "units": ["4-cost carry", "4-cost tank", "support unit", "utility unit"],
+      "traits": ["vertical trait", "splash trait"],
+      "carry_items": {"4-cost carry": ["bis 1", "bis 2", "bis 3"]},
+      "augment_priority": ["econ augment", "combat augment"],
+      "sources": [{"site": "seed", "tier": "S"}]
+    },
+    {
+      "slug": "example-vertical-trait",
+      "name": "Vertical Trait Stack (example)",
+      "units": ["trait unit 1", "trait unit 2", "trait unit 3", "emblem holder"],
+      "traits": ["stacked trait"],
+      "carry_items": {"emblem holder": ["emblem", "damage item"]},
+      "augment_priority": ["trait emblem augment"],
+      "sources": [{"site": "seed", "tier": "B"}]
+    }
+  ]
+}
