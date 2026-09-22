@@ -45,7 +45,8 @@ def build_questions(state: GameState, comps: list[Comp]) -> list[Question]:
                     "to? Each comp lists its 'play when' conditions — prefer the comps whose "
                     "openers, item needs and augment triggers best match the current state. "
                     "Downweight comps that opponents are clearly contesting (rival boards are "
-                    "listed under opponents), and downweight strong comps whose entry "
+                    "listed under opponents; the ones likely up next are under "
+                    "likely_next_opponents), and downweight strong comps whose entry "
                     "conditions are unmet: forcing a comp with no setup loses more LP than "
                     "playing a slightly weaker comp that is already online."
                 ),
@@ -100,6 +101,66 @@ def build_questions(state: GameState, comps: list[Comp]) -> list[Question]:
                     "Consider contested lines (an uncontested B-tier often outperforms a "
                     "contested S-tier), item fit, unmet 'play when' conditions, and whether "
                     "a listed comp sharing the current units is clearly better."
+                ),
+            )
+        )
+
+    if state.items:
+        questions.append(
+            Question(
+                id="slam",
+                kind="noul",
+                instructions=(
+                    "Should the player slam the components/items sitting on their bench "
+                    "right now, or hold them for a better-in-slot combination later? Slam "
+                    "high when: the board is bleeding HP and any combat item stabilizes it, "
+                    "the player is on a win streak worth protecting with tempo, or an early "
+                    "item-holder unit (a comp's item_holders entry) is already on the board "
+                    "so items can move to the real carry later. Hold when: key BiS "
+                    "components are one piece away and the board is winning anyway, or the "
+                    "comp's item plan says it is BiS-dependent. The chosen comp's "
+                    "'item plan' and 'item priority' lines describe its preferred policy."
+                ),
+            )
+        )
+
+    if state.last_result:
+        questions.append(
+            Question(
+                id="post_fight",
+                kind="noul",
+                instructions=(
+                    "A fight just resolved — the state's 'last_result' field says whether "
+                    "the player won or lost the previous round. Should the player change "
+                    "plan in reaction to that result? Score high when the result should "
+                    "alter the next decisions: after a loss consider whether the board needs "
+                    "immediate power (roll window, slam bench items onto the holder, "
+                    "reposition for the likely next opponents) versus staying the course "
+                    "because the loss was positioning variance; after a win consider "
+                    "protecting the streak with tempo versus greedier econ. Weigh HP, "
+                    "gold/level, the win/loss streak, and how strong the likely next "
+                    "opponents look. Score low when the correct move is to keep the "
+                    "current plan unchanged."
+                ),
+            )
+        )
+
+    informed = [
+        o for o in state.next_opponent_candidates() if o.units or o.name
+    ]
+    if informed and state.stage_num >= 2:
+        questions.append(
+            Question(
+                id="prep",
+                kind="noul",
+                instructions=(
+                    "Given the likely next opponents (listed under "
+                    "likely_next_opponents — TFT matchmaking can't redraw the "
+                    "recently fought ones), should the player adjust board "
+                    "positioning or itemization to prepare? High when a likely "
+                    "opponent's comp punishes the current layout (e.g. assassin "
+                    "dive vs cornered carries, AoE vs clumping); low when the "
+                    "standard positioning already covers it."
                 ),
             )
         )

@@ -17,6 +17,7 @@ dependencies = [
 [project.optional-dependencies]
 jev = ["typesafe-sdk>=0.7"]
 laya = ["laya>=0.3.3"]
+scout = ["mss>=9", "opencv-python-headless>=4.10", "numpy>=1.26"]
 dev = ["pytest>=8", "ruff>=0.5"]
 
 [project.scripts]

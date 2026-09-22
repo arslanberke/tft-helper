@@ -5,7 +5,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "service"))
 
 from tft_advisor.comps import Comp, SourceRating  # noqa: E402
 from tft_advisor.questions import FLEX_SLUG, build_questions  # noqa: E402
-from tft_advisor.state import GameState, Unit  # noqa: E402
+from tft_advisor.state import GameState, Opponent, Unit  # noqa: E402
 
 
 def _comps() -> list[Comp]:
@@ -51,3 +51,43 @@ def test_pivot_question_gated_by_stage_and_board() -> None:
 
     mid = GameState(stage="3-1", board=[Unit(name="u")])
     assert "pivot" in {q.id for q in build_questions(mid, [])}
+
+
+def test_prep_question_gated_on_opponents_and_stage() -> None:
+    # no opponents -> no prep question
+    assert "prep" not in {q.id for q in build_questions(GameState(stage="3-2"), _comps())}
+
+    # opponents but stage 1 -> too early to care
+    early = GameState(stage="1-3", opponents=[Opponent(name="A")])
+    assert "prep" not in {q.id for q in build_questions(early, _comps())}
+
+    # opponents + stage 2 -> asked
+    mid = GameState(stage="2-4", opponents=[Opponent(name="A")])
+    assert "prep" in {q.id for q in build_questions(mid, _comps())}
+
+    # recently fought opponents are excluded -> prep still fires for remaining
+    fought = GameState(
+        stage="3-1",
+        opponents=[Opponent(name="A"), Opponent(name="B")],
+        fought_opponents=["A"],
+    )
+    prep = next(q for q in build_questions(fought, _comps()) if q.id == "prep")
+    assert "likely_next_opponents" in prep.instructions
+
+
+def test_slam_question_gated_on_bench_items() -> None:
+    assert "slam" not in {q.id for q in build_questions(GameState(), _comps())}
+
+    state = GameState(items=["bow", "rod"])
+    qs = {q.id: q for q in build_questions(state, _comps())}
+    assert "slam" in qs
+    assert qs["slam"].kind == "noul"
+
+
+def test_post_fight_question_gated_on_last_result() -> None:
+    assert "post_fight" not in {q.id for q in build_questions(GameState(), _comps())}
+
+    state = GameState(last_result="defeat")
+    qs = {q.id: q for q in build_questions(state, _comps())}
+    assert "post_fight" in qs
+    assert qs["post_fight"].kind == "noul"
