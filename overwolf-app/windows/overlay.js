@@ -2,6 +2,54 @@
 
 const el = (id) => document.getElementById(id);
 
+function abbrev(name) {
+  const s = String(name || "").trim();
+  return s.length > 7 ? s.slice(0, 7) : s;
+}
+
+// Mini 4x7 board for the top comp: frontline on the upper rows,
+// backline on the lower rows, remaining core units fill the middle.
+function renderBoard(comp) {
+  const grid = el("board");
+  grid.innerHTML = "";
+  el("board-title").hidden = !comp;
+  if (!comp) return;
+
+  const pos = comp.positioning || {};
+  const carries = new Set(
+    Object.keys(comp.carry_items || {}).map((s) => s.toLowerCase())
+  );
+  const front = [...(pos.frontline || [])];
+  const back = [...(pos.backline || [])];
+  const lined = new Set([...front, ...back].map((s) => s.toLowerCase()));
+  const flex = (comp.units || []).filter((u) => !lined.has(u.toLowerCase()));
+
+  const rows = [front.slice(0, 7), [], [], back.slice(0, 7)];
+  for (const u of [...front.slice(7), ...flex, ...back.slice(7)]) {
+    const row = rows[1].length <= rows[2].length ? rows[1] : rows[2];
+    if (row.length < 7) row.push(u);
+  }
+
+  for (const units of rows) {
+    const rowEl = document.createElement("div");
+    rowEl.className = "brow";
+    for (let i = 0; i < 7; i++) {
+      const cell = document.createElement("span");
+      const name = units[i];
+      if (name) {
+        cell.className =
+          "cell" + (carries.has(String(name).toLowerCase()) ? " carry" : "");
+        cell.textContent = abbrev(name);
+        cell.title = name;
+      } else {
+        cell.className = "cell empty";
+      }
+      rowEl.appendChild(cell);
+    }
+    grid.appendChild(rowEl);
+  }
+}
+
 function renderAdvice(advice) {
   el("empty").hidden = true;
   const compsEl = el("comps");
@@ -57,6 +105,8 @@ function renderAdvice(advice) {
     row.appendChild(sub);
     compsEl.appendChild(row);
   }
+
+  renderBoard((advice.comps || [])[0]);
 
   const shopEl = el("shop");
   shopEl.innerHTML = "";
