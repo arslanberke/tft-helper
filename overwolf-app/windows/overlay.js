@@ -42,6 +42,10 @@ function renderAdvice(advice) {
             ? ` · back: ${c.positioning.backline.join(", ")}`
             : "")
       );
+    if ((c.units || []).length) bits.push(`roster: ${c.units.join(", ")}`);
+    const items = Object.entries(c.carry_items || {});
+    if (items.length)
+      bits.push(`items: ${items.map(([u, i]) => `${u}: ${i.join("/")}`).join("; ")}`);
     const missing = (c.missing_units || [])[0];
     if (missing)
       bits.push(

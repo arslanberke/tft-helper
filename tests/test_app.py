@@ -56,6 +56,8 @@ def test_advice_end_to_end_with_mock_engine(monkeypatch) -> None:
     top = body["comps"][0]
     # '4-cost carry' is on the board, so it must not appear in missing_units
     assert all(m["unit"] != "4-cost carry" for m in top["missing_units"])
+    assert top["units"]  # full roster is exposed for the overlay comp view
+    assert top["carry_items"]
 
 
 def test_advice_shop_marks_carry_core_and_pair(monkeypatch) -> None:

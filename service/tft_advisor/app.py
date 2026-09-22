@@ -47,6 +47,8 @@ class CompAdvice(BaseModel):
     positioning: dict = Field(default_factory=dict)  # frontline/backline/notes
     missing_units: list[dict] = Field(default_factory=list)  # absent cores + substitutes
     endgame: str = ""
+    units: list[str] = Field(default_factory=list)  # full comp roster
+    carry_items: dict[str, list[str]] = Field(default_factory=dict)
 
 
 class ShopMark(BaseModel):
@@ -232,6 +234,8 @@ def create_app() -> FastAPI:
                                 if u.lower() not in owned
                             ],
                             endgame=comp.endgame,
+                            units=comp.units,
+                            carry_items=comp.carry_items,
                         )
                     )
                 if len(comp_advice) >= req.top_n:
