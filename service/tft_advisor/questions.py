@@ -66,7 +66,10 @@ def build_questions(state: GameState, comps: list[Comp]) -> list[Question]:
                 "the bench holds live pairs, when losses are getting heavy, or just before "
                 "the lobby spikes — but override any of these when the board says otherwise. "
                 "Unit quality beats an extra slot when 2-stars carry the board; if the "
-                "chosen comp is a reroll line, roll at its reroll level."
+                "chosen comp is a reroll line, roll at its reroll level. On a win streak "
+                "spend to protect it (tempo levels); on a deep loss streak keep banking — "
+                "the gold and carousel priority are the comeback, roll only to stop "
+                "bleeding HP."
             ),
             criteria=dict(_ECON_CRITERIA),
         )

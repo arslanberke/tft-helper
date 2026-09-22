@@ -40,6 +40,10 @@ class Comp(BaseModel):
     strategy: str = ""  # e.g. "Fast 8 tempo", "Slow roll at 7"
     reroll_level: int | None = None
     pivot_slugs: list[str] = Field(default_factory=list)  # suggested fallbacks
+    unit_costs: dict[str, int] = Field(default_factory=dict)  # unit name -> shop cost
+    avg_place: float | None = None  # meta-site placement stats
+    top4: float | None = None  # top-4 rate, 0..1
+    pick_rate: float | None = None
     sources: list[SourceRating] = Field(default_factory=list)
 
     def consensus_tier(self) -> str:
@@ -71,7 +75,23 @@ class Comp(BaseModel):
             parts.append(f"play when: {when}")
         if self.strategy:
             parts.append(f"strategy: {self.strategy}")
+        stats = []
+        if self.avg_place is not None:
+            stats.append(f"avg place {self.avg_place}")
+        if self.top4 is not None:
+            stats.append(f"top4 {self.top4:.0%}")
+        if stats:
+            parts.append("meta stats: " + ", ".join(stats))
         return ". ".join(parts)
+
+    def carry_costs(self) -> list[int]:
+        """Shop costs of the comp's key units (carries first, then the rest)."""
+        carries = [
+            self.unit_costs[c] for c in self.carry_items if c in self.unit_costs
+        ]
+        if carries:
+            return carries
+        return list(self.unit_costs.values())
 
 
 def load_library(path: str | Path) -> list[Comp]:

@@ -23,3 +23,7 @@ class RawComp:
     augment_priority: list[str] = field(default_factory=list)
     # "when to play" data: {openers, augments, items, econ, strategy, reroll_level, pivot_slugs}
     conditions: dict = field(default_factory=dict)
+    unit_costs: dict[str, int] = field(default_factory=dict)
+    avg_place: float | None = None
+    top4: float | None = None
+    pick_rate: float | None = None
