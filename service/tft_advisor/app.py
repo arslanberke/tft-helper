@@ -17,6 +17,7 @@ from .comps import (
     pivot_candidates,
 )
 from .engines import Engine, FusedAnswer, build_default_engine
+from .odds import roll_window
 from .questions import FLEX_SLUG, build_questions
 from .state import GameState
 
@@ -37,6 +38,8 @@ class CompAdvice(BaseModel):
     contested: int = 0  # opponents sharing >=2 core units
     entry: dict = Field(default_factory=dict)  # play-conditions match: score/matched/missing
     pivot_to: list[PivotOption] = Field(default_factory=list)
+    stats: dict = Field(default_factory=dict)  # meta-site placement stats
+    roll: dict = Field(default_factory=dict)  # shop-odds roll window for key units
 
 
 class AdviceResponse(BaseModel):
@@ -46,6 +49,7 @@ class AdviceResponse(BaseModel):
     pivot: float | None = None
     engines: list[str]
     stage: str
+    level: int = 0
 
 
 @lru_cache
@@ -93,6 +97,7 @@ def create_app() -> FastAPI:
                 comp = by_slug.get(slug)
                 if comp:
                     entry = entry_signals(state, comp)
+                    costs = comp.carry_costs()
                     comp_advice.append(
                         CompAdvice(
                             slug=slug,
@@ -102,6 +107,16 @@ def create_app() -> FastAPI:
                             contested=contested_count(comp.units, opponent_units),
                             entry=entry.model_dump(),
                             pivot_to=pivot_candidates(state, comp, comps),
+                            stats={
+                                k: v
+                                for k, v in {
+                                    "avg_place": comp.avg_place,
+                                    "top4": comp.top4,
+                                    "pick_rate": comp.pick_rate,
+                                }.items()
+                                if v is not None
+                            },
+                            roll=roll_window(state.level, costs) if costs else {},
                         )
                     )
                 if len(comp_advice) >= req.top_n:
@@ -137,6 +152,7 @@ def create_app() -> FastAPI:
             pivot=pivot,
             engines=engines,
             stage=state.stage,
+            level=state.level,
         )
 
     return app

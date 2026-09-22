@@ -17,6 +17,10 @@
       "strategy": "Slow roll above 50g at reroll level",
       "reroll_level": 5,
       "pivot_slugs": ["example-fast-8-flex"],
+      "unit_costs": {"low-cost carry": 1, "frontline bot": 1, "trait bot": 2, "flex unit": 3},
+      "avg_place": 3.8,
+      "top4": 0.61,
+      "pick_rate": 0.09,
       "sources": [{"site": "seed", "tier": "A"}]
     },
     {
@@ -34,6 +38,10 @@
       },
       "strategy": "Stabilize on 8 with a 4-1/4-2 roll-down",
       "pivot_slugs": ["example-vertical-trait"],
+      "unit_costs": {"4-cost carry": 4, "4-cost tank": 4, "support unit": 3, "utility unit": 2},
+      "avg_place": 3.1,
+      "top4": 0.74,
+      "pick_rate": 0.18,
       "sources": [{"site": "seed", "tier": "S"}]
     },
     {
@@ -50,6 +58,9 @@
         "econ": ""
       },
       "strategy": "Commit early when the trait opener/emblem shows",
+      "unit_costs": {"trait unit 1": 2, "trait unit 2": 3, "trait unit 3": 4, "emblem holder": 4},
+      "avg_place": 4.4,
+      "top4": 0.48,
       "sources": [{"site": "seed", "tier": "B"}]
     }
   ]

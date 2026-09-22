@@ -62,6 +62,12 @@ def merge_sources(raw_groups: list[list[RawComp]], manual: list[Comp] | None = N
                 set(comp.augment_priority) | set(raw.augment_priority)
             )
             merge_conditions(comp, raw.conditions)
+            for unit, cost in raw.unit_costs.items():
+                comp.unit_costs.setdefault(unit, cost)
+            for stat in ("avg_place", "top4", "pick_rate"):
+                value = getattr(raw, stat)
+                if value is not None and getattr(comp, stat) is None:
+                    setattr(comp, stat, value)
             comp.sources.append(SourceRating(site=raw.site, tier=raw.tier, rank=raw.rank))
 
     return sorted(by_slug.values(), key=lambda c: c.slug)

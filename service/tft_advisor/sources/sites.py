@@ -21,6 +21,27 @@ import httpx
 from .base import RawComp, slugify
 
 
+def _num(entry: dict, *keys: str) -> float | None:
+    for key in keys:
+        value = entry.get(key)
+        if isinstance(value, int | float):
+            return float(value)
+        if isinstance(value, str):
+            try:
+                return float(value.rstrip("%")) / (100.0 if value.endswith("%") else 1.0)
+            except ValueError:
+                continue
+    return None
+
+
+def _rate(entry: dict, *keys: str) -> float | None:
+    """A 0..1 rate; sites report these as either fractions or percentages."""
+    value = _num(entry, *keys)
+    if value is None:
+        return None
+    return value / 100.0 if value > 1.0 else value
+
+
 def _tier(rank: int, total: int) -> str:
     frac = rank / max(total, 1)
     if frac <= 0.1:
@@ -110,6 +131,17 @@ def parse_generic(site: str) -> Callable[[dict], list[RawComp]]:
             for key in ("strategy", "reroll_level", "pivot_slugs"):
                 if key in entry and key not in conditions:
                     conditions[key] = entry[key]
+            raw_units = entry.get("units") or []
+            units: list[str] = []
+            unit_costs: dict[str, int] = {}
+            for u in raw_units:
+                if isinstance(u, str):
+                    units.append(u)
+                elif isinstance(u, dict) and (u.get("name") or u.get("unit")):
+                    uname = u.get("name") or u.get("unit")
+                    units.append(uname)
+                    if isinstance(u.get("cost"), int | float):
+                        unit_costs[uname] = int(u["cost"])
             comps.append(
                 RawComp(
                     site=site,
@@ -117,9 +149,13 @@ def parse_generic(site: str) -> Callable[[dict], list[RawComp]]:
                     name=name,
                     tier=str(entry.get("tier") or _tier(i, total)),
                     rank=i,
-                    units=[u for u in entry.get("units", []) if isinstance(u, str)],
+                    units=units,
                     traits=[t for t in entry.get("traits", []) if isinstance(t, str)],
                     conditions=conditions,
+                    unit_costs=unit_costs,
+                    avg_place=_num(entry, "avg_place", "average_place", "placement"),
+                    top4=_rate(entry, "top4", "top4_rate"),
+                    pick_rate=_rate(entry, "pick_rate", "play_rate"),
                 )
             )
         return comps

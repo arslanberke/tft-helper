@@ -24,6 +24,14 @@ function renderAdvice(advice) {
     const bits = [];
     if (c.entry && typeof c.entry.score === "number")
       bits.push(`entry ${Math.round(c.entry.score * 100)}%`);
+    if (c.roll && c.roll.hit_now > 0) {
+      const best =
+        c.roll.best_level && c.roll.best_level !== (advice.level || 0)
+          ? ` → best L${c.roll.best_level} ${Math.round(c.roll.hit_best * 100)}%`
+          : "";
+      bits.push(`roll ${Math.round(c.roll.hit_now * 100)}%${best}`);
+    }
+    if (c.stats && c.stats.avg_place) bits.push(`avg ${c.stats.avg_place}`);
     const piv = (c.pivot_to || [])[0];
     if (piv && (c.contested > 0 || (c.entry && c.entry.score < 0.5)))
       bits.push(`pivot → ${piv.name} (${piv.shared} shared)`);

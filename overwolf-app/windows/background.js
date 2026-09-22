@@ -37,6 +37,7 @@ function freshState() {
     level: 0,
     gold: 0,
     hp: 100,
+    streak: 0,
     board: [],
     bench: [],
     shop: [],
@@ -91,6 +92,8 @@ function applyKV(category, key, rawValue) {
       break;
     case "match_info":
       if (key === "round_type") gameState.round_type = String(value);
+      else if (key === "streak" || key === "win_streak")
+        gameState.streak = Number(value) || 0;
       else if (key === "stage" || key === "round") gameState.stage = String(value);
       else if (key === "opponents")
         gameState.opponents = asList(value).map(normOpponent);

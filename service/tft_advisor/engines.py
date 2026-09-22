@@ -179,9 +179,14 @@ class EnsembleEngine:
 
             if q.kind == "choice":
                 options = list(q.criteria) if isinstance(q.criteria, dict) else []
+                # a more confident engine's vote weighs more on this question
+                eff = {
+                    n: weights[n] * (0.5 + a.confidence) for n, a in per_engine.items()
+                }
+                total_eff = sum(eff.values()) or total_w
                 dist = {
-                    o: sum(weights[n] * a.distribution.get(o, 0.0) for n, a in per_engine.items())
-                    / total_w
+                    o: sum(eff[n] * a.distribution.get(o, 0.0) for n, a in per_engine.items())
+                    / total_eff
                     for o in options
                 }
                 choice = max(dist, key=dist.get)

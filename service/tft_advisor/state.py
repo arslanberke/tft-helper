@@ -33,6 +33,7 @@ class GameState(BaseModel):
     level: int = 0
     gold: int = 0
     hp: int = 100
+    streak: int = 0  # +n wins / -n losses
     board: list[Unit] = Field(default_factory=list)
     bench: list[Unit] = Field(default_factory=list)
     shop: list[str] = Field(default_factory=list)
@@ -49,6 +50,7 @@ class GameState(BaseModel):
             "level": self.level,
             "gold": self.gold,
             "hp": self.hp,
+            "streak": self.streak,
             "board": [u.describe() for u in self.board],
             "bench": [u.describe() for u in self.bench],
             "shop": self.shop,
