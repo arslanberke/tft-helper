@@ -1,5 +1,5 @@
 {
-  "_note": "Seeded example comps so the pipeline runs out of the box. Regenerate from real meta sites via scripts/build_comp_library.py once sources.json endpoints are configured.",
+  "_note": "Seeded example comps so the pipeline runs out of the box. Regenerate from real meta sites via scripts/build_comp_library.py once sources.json endpoints are configured. The `conditions` block holds 'when to play' triggers (openers/augments/items/econ); `pivot_slugs` are suggested fallback comps.",
   "comps": [
     {
       "slug": "example-reroll-carry",
@@ -8,6 +8,15 @@
       "traits": ["carry trait", "frontline trait"],
       "carry_items": {"low-cost carry": ["damage item", "attack speed item", "survivability item"]},
       "augment_priority": ["combat augment", "econ reroll augment"],
+      "conditions": {
+        "openers": ["low-cost carry", "frontline bot"],
+        "augments": ["econ reroll augment"],
+        "items": ["attack speed item"],
+        "econ": "reroll"
+      },
+      "strategy": "Slow roll above 50g at reroll level",
+      "reroll_level": 5,
+      "pivot_slugs": ["example-fast-8-flex"],
       "sources": [{"site": "seed", "tier": "A"}]
     },
     {
@@ -17,6 +26,14 @@
       "traits": ["vertical trait", "splash trait"],
       "carry_items": {"4-cost carry": ["bis 1", "bis 2", "bis 3"]},
       "augment_priority": ["econ augment", "combat augment"],
+      "conditions": {
+        "openers": ["strong early board", "econ start"],
+        "augments": ["econ augment"],
+        "items": ["bis 1"],
+        "econ": "fast8"
+      },
+      "strategy": "Stabilize on 8 with a 4-1/4-2 roll-down",
+      "pivot_slugs": ["example-vertical-trait"],
       "sources": [{"site": "seed", "tier": "S"}]
     },
     {
@@ -26,6 +43,13 @@
       "traits": ["stacked trait"],
       "carry_items": {"emblem holder": ["emblem", "damage item"]},
       "augment_priority": ["trait emblem augment"],
+      "conditions": {
+        "openers": ["trait unit 1", "trait unit 2"],
+        "augments": ["trait emblem augment"],
+        "items": ["emblem"],
+        "econ": ""
+      },
+      "strategy": "Commit early when the trait opener/emblem shows",
       "sources": [{"site": "seed", "tier": "B"}]
     }
   ]

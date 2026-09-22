@@ -104,6 +104,12 @@ def parse_generic(site: str) -> Callable[[dict], list[RawComp]]:
             name = entry.get("name") or entry.get("title") or ""
             if not name:
                 continue
+            conditions = entry.get("when_to_play") or entry.get("conditions") or {}
+            if not isinstance(conditions, dict):
+                conditions = {}
+            for key in ("strategy", "reroll_level", "pivot_slugs"):
+                if key in entry and key not in conditions:
+                    conditions[key] = entry[key]
             comps.append(
                 RawComp(
                     site=site,
@@ -113,6 +119,7 @@ def parse_generic(site: str) -> Callable[[dict], list[RawComp]]:
                     rank=i,
                     units=[u for u in entry.get("units", []) if isinstance(u, str)],
                     traits=[t for t in entry.get("traits", []) if isinstance(t, str)],
+                    conditions=conditions,
                 )
             )
         return comps

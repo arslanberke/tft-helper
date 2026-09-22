@@ -19,6 +19,16 @@ function renderAdvice(advice) {
       `<span class="agree ${badgeClass}">${badge}</span>` +
       `<span class="prob">${Math.round(c.probability * 100)}%</span>`;
     row.querySelector(".name").textContent = c.name;
+    const sub = document.createElement("div");
+    sub.className = "sub";
+    const bits = [];
+    if (c.entry && typeof c.entry.score === "number")
+      bits.push(`entry ${Math.round(c.entry.score * 100)}%`);
+    const piv = (c.pivot_to || [])[0];
+    if (piv && (c.contested > 0 || (c.entry && c.entry.score < 0.5)))
+      bits.push(`pivot → ${piv.name} (${piv.shared} shared)`);
+    sub.textContent = bits.join(" · ");
+    row.appendChild(sub);
     compsEl.appendChild(row);
   }
 

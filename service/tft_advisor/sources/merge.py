@@ -19,12 +19,36 @@ def merge_sources(raw_groups: list[list[RawComp]], manual: list[Comp] | None = N
             comp = by_slug[slug] = Comp(slug=slug, name=name)
         return comp
 
+    def merge_conditions(target: Comp, cond: dict) -> None:
+        for field in ("openers", "augments", "items"):
+            terms = cond.get(field) or []
+            existing = getattr(target.conditions, field)
+            merged = sorted(set(existing) | {t for t in terms if t})
+            setattr(target.conditions, field, merged)
+        if cond.get("econ") and not target.conditions.econ:
+            target.conditions.econ = str(cond["econ"])
+        if cond.get("strategy") and not target.strategy:
+            target.strategy = str(cond["strategy"])
+        if cond.get("reroll_level") and target.reroll_level is None:
+            target.reroll_level = int(cond["reroll_level"])
+        pivots = cond.get("pivot_slugs") or []
+        target.pivot_slugs = sorted(set(target.pivot_slugs) | set(pivots))
+
     for comp in manual or []:
         target = ensure(comp.slug, comp.name)
         target.units = sorted(set(target.units) | set(comp.units))
         target.traits = sorted(set(target.traits) | set(comp.traits))
         target.carry_items.update(comp.carry_items)
         target.augment_priority = sorted(set(target.augment_priority) | set(comp.augment_priority))
+        merge_conditions(
+            target,
+            {
+                **comp.conditions.model_dump(),
+                "strategy": comp.strategy,
+                "reroll_level": comp.reroll_level,
+                "pivot_slugs": comp.pivot_slugs,
+            },
+        )
         target.sources.extend(comp.sources)
 
     for group in raw_groups:
@@ -37,6 +61,7 @@ def merge_sources(raw_groups: list[list[RawComp]], manual: list[Comp] | None = N
             comp.augment_priority = sorted(
                 set(comp.augment_priority) | set(raw.augment_priority)
             )
+            merge_conditions(comp, raw.conditions)
             comp.sources.append(SourceRating(site=raw.site, tier=raw.tier, rank=raw.rank))
 
     return sorted(by_slug.values(), key=lambda c: c.slug)

@@ -6,9 +6,16 @@ from functools import lru_cache
 from pathlib import Path
 
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from .comps import Comp, contested_count, load_library
+from .comps import (
+    Comp,
+    PivotOption,
+    contested_count,
+    entry_signals,
+    load_library,
+    pivot_candidates,
+)
 from .engines import Engine, FusedAnswer, build_default_engine
 from .questions import FLEX_SLUG, build_questions
 from .state import GameState
@@ -28,6 +35,8 @@ class CompAdvice(BaseModel):
     probability: float
     agreement: bool
     contested: int = 0  # opponents sharing >=2 core units
+    entry: dict = Field(default_factory=dict)  # play-conditions match: score/matched/missing
+    pivot_to: list[PivotOption] = Field(default_factory=list)
 
 
 class AdviceResponse(BaseModel):
@@ -83,6 +92,7 @@ def create_app() -> FastAPI:
                     continue
                 comp = by_slug.get(slug)
                 if comp:
+                    entry = entry_signals(state, comp)
                     comp_advice.append(
                         CompAdvice(
                             slug=slug,
@@ -90,6 +100,8 @@ def create_app() -> FastAPI:
                             probability=round(prob, 3),
                             agreement=fused["comp"].agreement,
                             contested=contested_count(comp.units, opponent_units),
+                            entry=entry.model_dump(),
+                            pivot_to=pivot_candidates(state, comp, comps),
                         )
                     )
                 if len(comp_advice) >= req.top_n:

@@ -21,3 +21,5 @@ class RawComp:
     traits: list[str] = field(default_factory=list)
     carry_items: dict[str, list[str]] = field(default_factory=dict)
     augment_priority: list[str] = field(default_factory=list)
+    # "when to play" data: {openers, augments, items, econ, strategy, reroll_level, pivot_slugs}
+    conditions: dict = field(default_factory=dict)
