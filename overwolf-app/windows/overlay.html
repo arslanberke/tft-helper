@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Comp Advisor</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; }
+      body {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: rgba(12, 14, 20, 0.88);
+        color: #e8ecf4;
+        border: 1px solid rgba(120, 160, 255, 0.25);
+        border-radius: 10px;
+        height: 100vh;
+        overflow: hidden;
+        user-select: none;
+      }
+      header {
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #9fb3d8;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        justify-content: space-between;
+      }
+      #status { font-weight: 400; }
+      #status.off { color: #ff7d7d; }
+      #status.on { color: #7ddba3; }
+      main { padding: 8px 12px; font-size: 13px; }
+      .section-title {
+        font-size: 10px;
+        color: #7e8aa5;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin: 10px 0 4px;
+      }
+      .comp {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.04);
+        margin-bottom: 4px;
+      }
+      .comp .name { flex: 1; }
+      .comp .prob { font-variant-numeric: tabular-nums; color: #a8c7ff; font-weight: 600; }
+      .agree { font-size: 10px; padding: 1px 5px; border-radius: 4px; }
+      .agree.yes { background: rgba(125, 219, 163, 0.15); color: #7ddba3; }
+      .agree.no { background: rgba(255, 190, 90, 0.15); color: #ffbe5a; }
+      .hint { padding: 4px 8px; color: #cfd8ea; }
+      .hint b { color: #a8c7ff; }
+      .hint-bar { display: flex; gap: 6px; flex-wrap: wrap; }
+      .chip {
+        background: rgba(168, 199, 255, 0.12);
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 12px;
+      }
+      #empty { color: #7e8aa5; padding: 16px 4px; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <span>Comp Advisor</span>
+      <span id="status" class="off">service offline</span>
+    </header>
+    <main>
+      <div id="empty">Waiting for advice…<br>Start the decision service: <code>tft-advisor</code></div>
+      <div id="comps"></div>
+      <div class="section-title" id="econ-title" hidden>Economy</div>
+      <div class="hint-bar" id="econ"></div>
+      <div class="section-title" id="aug-title" hidden>Augments</div>
+      <div class="hint" id="aug"></div>
+      <div class="hint" id="pivot"></div>
+    </main>
+    <script src="overlay.js"></script>
+  </body>
+</html>

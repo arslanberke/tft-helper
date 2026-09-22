@@ -1,0 +1,9 @@
+{
+  "_note": "Meta-site endpoints for build_comp_library.py. Fill in the live tierlist URL per site (these sites have no stable public API — capture the JSON their frontends fetch), or point `url` at a local export file.",
+  "sources": [
+    {"site": "tactics_tools", "url": ""},
+    {"site": "metatft", "url": ""},
+    {"site": "mobalytics", "url": ""},
+    {"site": "tft_academy", "url": ""}
+  ]
+}

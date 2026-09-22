@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tft-comp-advisor"
+version = "0.1.0"
+description = "Live TFT comp advisor: Overwolf game-state feed + consensus System-1 decision models (Jev / Laya)"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+jev = ["typesafe-sdk>=0.7"]
+laya = ["laya>=0.3.3"]
+dev = ["pytest>=8", "ruff>=0.5"]
+
+[project.scripts]
+tft-advisor = "tft_advisor.app:main"
+
+[tool.setuptools]
+package-dir = {"" = "service"}
+
+[tool.setuptools.packages.find]
+where = ["service"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
