@@ -296,3 +296,22 @@ def test_scout_endpoint_returns_detected_units(monkeypatch) -> None:
     resp = client.post("/scout")
     assert resp.status_code == 200
     assert resp.json()["units"] == ["Ahri", "Sett"]
+
+
+def test_rival_names_in_response(monkeypatch) -> None:
+    monkeypatch.setenv("TFT_ENGINE", "mock")
+    _engine.cache_clear()
+    _library.cache_clear()
+
+    client = TestClient(create_app())
+    resp = client.post(
+        "/advice",
+        json={
+            "state": {
+                "stage": "3-2",
+                "opponents": [{"name": "r1"}, {"name": "r2"}, {"name": ""}],
+            }
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.json()["rival_names"] == ["r1", "r2"]

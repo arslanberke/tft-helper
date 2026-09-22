@@ -140,6 +140,21 @@ function renderAdvice(advice) {
       `next? ${bits.join(", ")}`;
   }
 
+  const rivalsEl = el("rivals");
+  rivalsEl.innerHTML = "";
+  for (const name of advice.rival_names || []) {
+    const chip = document.createElement("button");
+    chip.className = "chip rival" + (name === advice.last_fought ? " fought" : "");
+    chip.textContent = name;
+    chip.title = "fill scout name";
+    chip.addEventListener("click", () => {
+      el("s-name").value = name;
+    });
+    rivalsEl.appendChild(chip);
+  }
+  // Preselect the last-fought rival: the board you're viewing is usually theirs.
+  if (!el("s-name").value && advice.last_fought) el("s-name").value = advice.last_fought;
+
   const prepEl = el("prep");
   if (typeof advice.prep === "number" && advice.prep > 0.5) {
     prepEl.textContent = `Prep adjustment signal: ${Math.round(advice.prep * 100)}%`;

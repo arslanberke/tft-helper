@@ -79,6 +79,7 @@ class AdviceResponse(BaseModel):
     carousel: dict | None = None  # best pick from the carousel wheel, if known
     shop: list[ShopMark] = Field(default_factory=list)
     next_opponents: list[NextOpponent] = Field(default_factory=list)
+    rival_names: list[str] = Field(default_factory=list)
     last_fought: str = ""
     engines: list[str]
     stage: str
@@ -346,6 +347,7 @@ def create_app() -> FastAPI:
             carousel=carousel,
             shop=shop,
             next_opponents=next_ops,
+            rival_names=[o.name for o in state.opponents if o.name],
             last_fought=state.fought_opponents[-1] if state.fought_opponents else "",
             engines=engines,
             stage=state.stage,
