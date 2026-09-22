@@ -36,6 +36,7 @@ class GameState(BaseModel):
     board: list[Unit] = Field(default_factory=list)
     bench: list[Unit] = Field(default_factory=list)
     shop: list[str] = Field(default_factory=list)
+    items: list[str] = Field(default_factory=list)  # loose components/items on bench
     offered_augments: list[str] = Field(default_factory=list)
     picked_augments: list[str] = Field(default_factory=list)
     opponents: list[Opponent] = Field(default_factory=list)
@@ -51,6 +52,7 @@ class GameState(BaseModel):
             "board": [u.describe() for u in self.board],
             "bench": [u.describe() for u in self.bench],
             "shop": self.shop,
+            "items": self.items,
             "offered_augments": self.offered_augments,
             "picked_augments": self.picked_augments,
             "opponents": [o.describe() for o in self.opponents],

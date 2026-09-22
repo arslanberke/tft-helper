@@ -42,8 +42,12 @@ def build_questions(state: GameState, comps: list[Comp]) -> list[Question]:
                 instructions=(
                     "You are a Challenger-level TFT coach. Given this board, bench, shop, "
                     "items, augments and economy, which composition should the player commit "
-                    "to? Downweight comps that opponents are clearly contesting — rival "
-                    "boards are listed under opponents."
+                    "to? Each comp lists its 'play when' conditions — prefer the comps whose "
+                    "openers, item needs and augment triggers best match the current state. "
+                    "Downweight comps that opponents are clearly contesting (rival boards are "
+                    "listed under opponents), and downweight strong comps whose entry "
+                    "conditions are unmet: forcing a comp with no setup loses more LP than "
+                    "playing a slightly weaker comp that is already online."
                 ),
                 criteria=criteria,
             )
@@ -55,7 +59,14 @@ def build_questions(state: GameState, comps: list[Comp]) -> list[Question]:
             kind="choice",
             instructions=(
                 "You are a Challenger-level TFT coach. Given the stage, level, gold, HP and "
-                "board strength, what is the best economy action right now?"
+                "board strength, what is the best economy action right now? Pick the "
+                "contextually optimal line, not a fixed rule — benchmarks are only priors: "
+                "hold above 50g for max interest when stable, hit level windows "
+                "(3-2 ~lvl 6, 4-1/4-2 lvl 8 with a roll-down, 5-2+ lvl 9), roll early when "
+                "the bench holds live pairs, when losses are getting heavy, or just before "
+                "the lobby spikes — but override any of these when the board says otherwise. "
+                "Unit quality beats an extra slot when 2-stars carry the board; if the "
+                "chosen comp is a reroll line, roll at its reroll level."
             ),
             criteria=dict(_ECON_CRITERIA),
         )
@@ -68,7 +79,9 @@ def build_questions(state: GameState, comps: list[Comp]) -> list[Question]:
                 kind="choice",
                 instructions=(
                     "You are a Challenger-level TFT coach. Of the augments currently offered, "
-                    "which best fits the player's board direction and likely comp?"
+                    "which best fits the player's board direction and likely comp? An augment "
+                    "that unlocks or completes a strong comp's 'play when' conditions beats a "
+                    "generically good one."
                 ),
                 criteria={a: "" for a in state.offered_augments},
             )
@@ -81,8 +94,9 @@ def build_questions(state: GameState, comps: list[Comp]) -> list[Question]:
                 kind="noul",
                 instructions=(
                     "Should the player pivot away from their current board direction? "
-                    "Consider contested lines, item fit, and whether a listed comp "
-                    "is clearly better."
+                    "Consider contested lines (an uncontested B-tier often outperforms a "
+                    "contested S-tier), item fit, unmet 'play when' conditions, and whether "
+                    "a listed comp sharing the current units is clearly better."
                 ),
             )
         )

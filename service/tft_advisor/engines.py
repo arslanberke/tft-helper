@@ -251,8 +251,15 @@ class MockEngine:
     ) -> float:
         if question_id == "econ":
             gold = int(state.get("gold") or 0)
+            level = int(state.get("level") or 0)
             stage_num = int(str(state.get("stage") or "0").split("-")[0] or 0)
-            rules = {"hold": gold >= 50, "level": stage_num >= 4 and gold >= 20, "roll": True}
+            # level-behind-benchmark pushes level; deep gold favors hold; else roll
+            behind = (stage_num >= 4 and level < 8) or (stage_num >= 3 and level < 6)
+            rules = {
+                "hold": gold >= 50 and not behind,
+                "level": behind and gold >= 20,
+                "roll": not behind or gold < 20,
+            }
             return 3.0 if rules.get(option) else 1.0
         if isinstance(criteria, dict):
             text = criteria.get(option, "").lower()

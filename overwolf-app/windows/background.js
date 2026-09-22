@@ -40,6 +40,7 @@ function freshState() {
     board: [],
     bench: [],
     shop: [],
+    items: [],
     offered_augments: [],
     picked_augments: [],
     opponents: [],
@@ -83,6 +84,10 @@ function applyKV(category, key, rawValue) {
       if (key === "health" || key === "hp") gameState.hp = Number(value) || gameState.hp;
       else if (key === "level") gameState.level = Number(value) || gameState.level;
       else if (key === "gold") gameState.gold = Number(value) || gameState.gold;
+      else if (key === "items" || key === "inventory")
+        gameState.items = asList(value).map((i) =>
+          typeof i === "object" ? i.name || i.apiName || "" : String(i)
+        );
       break;
     case "match_info":
       if (key === "round_type") gameState.round_type = String(value);
@@ -101,6 +106,12 @@ function applyKV(category, key, rawValue) {
     case "store":
       if (key === "shop_pieces" || key === "shop" || key === "store")
         gameState.shop = asList(value).map((u) => (typeof u === "object" ? normUnit(u).name : String(u)));
+      break;
+    case "items":
+      if (key === "items" || key === "inventory" || key === "bench_items")
+        gameState.items = asList(value).map((i) =>
+          typeof i === "object" ? i.name || i.apiName || "" : String(i)
+        );
       break;
     case "augments":
       if (key === "picked" || key === "augments" || key === "player_augments")
