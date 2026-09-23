@@ -121,12 +121,16 @@ class Comp(BaseModel):
 
     def carry_costs(self) -> list[int]:
         """Shop costs of the comp's key units (carries first, then the rest)."""
-        carries = [
-            self.unit_costs[c] for c in self.carry_items if c in self.unit_costs
+        return [cost for _, cost in self.key_unit_costs()]
+
+    def key_unit_costs(self) -> list[tuple[str, int]]:
+        """(unit name, shop cost) pairs for key units — carries first."""
+        pairs = [
+            (c, self.unit_costs[c]) for c in self.carry_items if c in self.unit_costs
         ]
-        if carries:
-            return carries
-        return list(self.unit_costs.values())
+        if pairs:
+            return pairs
+        return list(self.unit_costs.items())
 
 
 def load_library(path: str | Path) -> list[Comp]:
