@@ -41,6 +41,11 @@ def main() -> None:
         print(f"[sources] manual: {len(manual)} comps")
 
     merged = merge_sources(groups, manual)
+    if not merged:
+        # Never wipe the library: no fetched comps means sources.json is
+        # unconfigured or every endpoint failed — keep the existing file.
+        print("!! nothing fetched — sources.json has no urls; comps.json left unchanged")
+        return
     out = {"comps": [c.model_dump() for c in merged]}
     dest = DATA_DIR / "comps.json"
     dest.write_text(json.dumps(out, indent=2))
