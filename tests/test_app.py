@@ -23,6 +23,7 @@ def test_advice_end_to_end_with_mock_engine(monkeypatch) -> None:
                 "hp": 60,
                 "board": [{"name": "4-cost carry", "star": 2, "items": ["bis 1"]}],
                 "offered_augments": ["econ augment", "combat augment", "trait emblem augment"],
+                "offered_specials": ["hunter buff", "vanguard buff"],
                 "opponents": [
                     {
                         "name": "RivalOne",
@@ -49,6 +50,7 @@ def test_advice_end_to_end_with_mock_engine(monkeypatch) -> None:
         "combat augment",
         "trait emblem augment",
     }
+    assert body["special"]["pick"] in {"hunter buff", "vanguard buff"}
     assert body["pivot"] is not None
     assert body["prep"] is not None  # opponents present + stage >= 2
     assert {o["name"] for o in body["next_opponents"]} == {"RivalOne", "RivalTwo"}

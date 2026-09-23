@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from .comps import Comp
+from .setdata import annotated
 from .state import GameState
 
 QuestionKind = Literal["choice", "score", "noul"]
@@ -88,6 +89,27 @@ def build_questions(state: GameState, comps: list[Comp]) -> list[Question]:
                     "generically good one."
                 ),
                 criteria={a: "" for a in state.offered_augments},
+            )
+        )
+
+    if state.offered_specials:
+        options = list(state.offered_specials)
+        # A lone offer is still a decision — skipping keeps the gold/tempo.
+        if len(options) == 1:
+            options.append("Skip (save gold)")
+        questions.append(
+            Question(
+                id="special",
+                kind="choice",
+                instructions=(
+                    "You are a Challenger-level TFT coach. A patch/set-specific "
+                    "shop power-up is offered (anomaly, encounter, special row…). "
+                    "Pick the option that most advances a winning line for this "
+                    "state — tempo, econ, and how well it fits the player's comp "
+                    "direction all count; 'Skip' only when nothing beats holding "
+                    "the gold."
+                ),
+                criteria={s: annotated(s) for s in options},
             )
         )
 
