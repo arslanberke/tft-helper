@@ -60,6 +60,20 @@ Then sideload `overwolf-app/` in Overwolf dev mode (`overwolf-app/README.md`).
 3. `python service/scripts/fetch_set_data.py --icons` for current-set
    champion/trait/augment names + icons.
 
+## Patch day
+
+When a TFT patch/set lands, once the meta sites have updated:
+
+```bash
+python -m service.scripts.refresh_meta          # icons + comp library
+python -m service.scripts.refresh_meta --set 14 # pin a set
+```
+
+Then: restart `tft-advisor`, and if the board looks shifted recalibrate
+`TFT_BOARD_REGION` using the debug capture at `service/data/last_scout.png`.
+New GEP key spellings show up as "unmapped info" logs in the background
+console.
+
 ## Tests
 
 ```bash
