@@ -78,6 +78,13 @@ function renderAdvice(advice) {
           ? ` → best L${c.roll.best_level} ${Math.round(c.roll.hit_best * 100)}%`
           : "";
       bits.push(`roll ${Math.round(c.roll.hit_now * 100)}%${best}`);
+      const copies = c.roll.copies || {};
+      const thin = Object.entries(copies).filter(([, v]) => {
+        const left = parseInt(String(v).split("/")[0], 10);
+        return left <= 3;
+      });
+      if (thin.length)
+        bits.push(`thin: ${thin.map(([n, v]) => `${n} ${v}`).join(", ")}`);
     }
     if (c.stats && c.stats.avg_place) bits.push(`avg ${c.stats.avg_place}`);
     const piv = (c.pivot_to || [])[0];

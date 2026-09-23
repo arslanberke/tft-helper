@@ -19,7 +19,7 @@ from .comps import (
     pivot_candidates,
 )
 from .engines import Engine, FusedAnswer, build_default_engine
-from .odds import roll_window
+from .odds import pool_from_state, roll_window
 from .questions import FLEX_SLUG, build_questions
 from .scout import available as scout_available
 from .scout import scout_board
@@ -255,6 +255,8 @@ def create_app() -> FastAPI:
         by_slug = {c.slug: c for c in comps}
         opponent_units = [[u.name for u in o.units] for o in state.opponents]
         owned = _unit_names(state.board) | _unit_names(state.bench)
+        merged_costs = {u: c for comp in comps for u, c in comp.unit_costs.items()}
+        pool = pool_from_state(state, merged_costs)
         comp_advice: list[CompAdvice] = []
         if "comp" in fused:
             for slug, prob in sorted(
@@ -267,7 +269,9 @@ def create_app() -> FastAPI:
                 comp = by_slug.get(slug)
                 if comp:
                     entry = entry_signals(state, comp)
-                    costs = comp.carry_costs()
+                    pairs = comp.key_unit_costs()
+                    costs = [c for _, c in pairs]
+                    key_units = [n for n, _ in pairs]
                     comp_advice.append(
                         CompAdvice(
                             slug=slug,
@@ -286,7 +290,11 @@ def create_app() -> FastAPI:
                                 }.items()
                                 if v is not None
                             },
-                            roll=roll_window(state.level, costs) if costs else {},
+                            roll=(
+                                roll_window(state.level, costs, pool, key_units)
+                                if costs
+                                else {}
+                            ),
                             positioning=(
                                 comp.positioning.model_dump()
                                 if (

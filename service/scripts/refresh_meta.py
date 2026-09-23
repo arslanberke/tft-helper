@@ -21,17 +21,22 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 # `service/` too, so the sibling scripts' own `tft_advisor` imports work.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-STEPS = ["fetch_champ_icons", "build_comp_library"]
+# fetch_set_data first: its champion costs feed the pool math and the icons.
+STEPS = ["fetch_set_data", "fetch_champ_icons", "build_comp_library"]
+# Steps that accept a --set argument (others always target the live set).
+TAKES_SET = {"fetch_champ_icons"}
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--set", dest="set_num", default=None, help="TFT set number")
     args = parser.parse_args()
-    sys.argv = [sys.argv[0]] + (["--set", args.set_num] if args.set_num else [])
 
     for step in STEPS:
         print(f"--- {step} ---")
+        sys.argv = [sys.argv[0]] + (
+            ["--set", args.set_num] if args.set_num and step in TAKES_SET else []
+        )
         try:
             mod = importlib.import_module(f"service.scripts.{step}")
         except ImportError:
