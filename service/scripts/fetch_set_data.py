@@ -38,17 +38,29 @@ def main() -> None:
                 "name": c.get("name"),
                 "cost": c.get("cost"),
                 "traits": c.get("traits", []),
+                "ability": c.get("ability"),
+                "desc": c.get("desc"),
                 "icon": c.get("icon"),
             }
             for c in current.get("champions", [])
         ],
         "traits": [
-            {"apiName": t.get("apiName"), "name": t.get("name"), "icon": t.get("icon")}
+            {
+                "apiName": t.get("apiName"),
+                "name": t.get("name"),
+                "desc": t.get("desc"),
+                "icon": t.get("icon"),
+            }
             for t in current.get("traits", [])
         ],
         "items": current.get("items", []),
         "augments": [
-            {"apiName": a.get("apiName"), "name": a.get("name"), "icon": a.get("icon")}
+            {
+                "apiName": a.get("apiName"),
+                "name": a.get("name"),
+                "desc": a.get("desc"),
+                "icon": a.get("icon"),
+            }
             for a in payload.get("augments", current.get("augments", []))
         ],
     }

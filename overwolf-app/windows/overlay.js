@@ -226,6 +226,19 @@ function renderAdvice(advice) {
     augEl.appendChild(top);
   }
 
+  const specEl = el("spec");
+  specEl.innerHTML = "";
+  el("spec-title").hidden = !advice.special;
+  if (advice.special) {
+    const top = document.createElement("div");
+    top.innerHTML = `<b></b> <span class="prob"></span>`;
+    top.querySelector("b").textContent = advice.special.pick;
+    top.querySelector(".prob").textContent =
+      `${Math.round((advice.special.distribution[advice.special.pick] || 0) * 100)}%` +
+      (advice.special.agreement ? "" : " · engines disagree");
+    specEl.appendChild(top);
+  }
+
   const pivotEl = el("pivot");
   if (typeof advice.pivot === "number" && advice.pivot > 0.5) {
     pivotEl.textContent = `Pivot signal: ${Math.round(advice.pivot * 100)}%`;

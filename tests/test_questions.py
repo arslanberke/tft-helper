@@ -42,6 +42,19 @@ def test_augment_question_only_when_choice_offered() -> None:
     assert set(aug.criteria) == {"Aug X", "Aug Y", "Aug Z"}
 
 
+def test_special_question_gated_and_adds_skip() -> None:
+    assert "special" not in {q.id for q in build_questions(GameState(), _comps())}
+
+    state = GameState(offered_specials=["Hunter buff", "Vanguard buff"])
+    sp = next(q for q in build_questions(state, _comps()) if q.id == "special")
+    assert set(sp.criteria) == {"Hunter buff", "Vanguard buff"}
+
+    # a lone offer still asks the question, with Skip as the alternative
+    solo = GameState(offered_specials=["Hunter buff"])
+    sp = next(q for q in build_questions(solo, _comps()) if q.id == "special")
+    assert "Skip (save gold)" in sp.criteria
+
+
 def test_pivot_question_gated_by_stage_and_board() -> None:
     no_board = GameState(stage="4-1")
     assert "pivot" not in {q.id for q in build_questions(no_board, [])}

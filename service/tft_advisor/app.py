@@ -72,6 +72,7 @@ class AdviceResponse(BaseModel):
     comps: list[CompAdvice]
     econ: dict | None = None
     augment: dict | None = None
+    special: dict | None = None
     pivot: float | None = None
     prep: float | None = None
     slam: float | None = None
@@ -339,6 +340,13 @@ def create_app() -> FastAPI:
                 "distribution": fused["augment"].distribution,
                 "agreement": fused["augment"].agreement,
             }
+        special = None
+        if "special" in fused:
+            special = {
+                "pick": fused["special"].choice,
+                "distribution": fused["special"].distribution,
+                "agreement": fused["special"].agreement,
+            }
 
         pivot = fused["pivot"].noul if "pivot" in fused else None
         prep = fused["prep"].noul if "prep" in fused else None
@@ -371,6 +379,7 @@ def create_app() -> FastAPI:
             comps=comp_advice,
             econ=econ,
             augment=augment,
+            special=special,
             pivot=pivot,
             prep=prep,
             slam=slam,

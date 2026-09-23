@@ -43,6 +43,7 @@ function freshState() {
     shop: [],
     items: [],
     offered_augments: [],
+    offered_specials: [],
     picked_augments: [],
     carousel_items: [],
     last_result: "",
@@ -155,6 +156,16 @@ function applyKV(category, key, rawValue) {
     case "store":
       if (key === "shop_pieces" || key === "shop" || key === "store")
         gameState.shop = asList(value).map((u) => (typeof u === "object" ? normUnit(u).name : String(u)));
+      else if (
+        // set-specific shop power-ups (anomaly/encounter/special rows) — key
+        // spellings drift per set; "unmapped info" logs reveal the real one
+        ["special", "specials", "power_up", "power_ups", "powerups",
+          "anomaly", "anomalies", "encounter", "set_special", "trait_choice",
+          "trait_choices", "round_choice", "choices"].includes(key)
+      )
+        gameState.offered_specials = asList(value).map((s) =>
+          typeof s === "object" ? s.name || s.apiName || s.id || String(s) : String(s)
+        );
       break;
     case "items":
       if (key === "items" || key === "inventory" || key === "bench_items")

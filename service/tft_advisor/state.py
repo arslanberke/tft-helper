@@ -50,6 +50,8 @@ class GameState(BaseModel):
     shop: list[str] = Field(default_factory=list)
     items: list[str] = Field(default_factory=list)  # loose components/items on bench
     offered_augments: list[str] = Field(default_factory=list)
+    # Patch/set-specific shop power-ups (anomaly, encounter, special rows …)
+    offered_specials: list[str] = Field(default_factory=list)
     picked_augments: list[str] = Field(default_factory=list)
     carousel_items: list[str] = Field(default_factory=list)  # items on the carousel wheel
     last_result: str = ""  # our outcome of the previous round: victory | defeat
@@ -91,6 +93,7 @@ class GameState(BaseModel):
             "shop": self.shop,
             "items": self.items,
             "offered_augments": self.offered_augments,
+            "offered_specials": self.offered_specials,
             "picked_augments": self.picked_augments,
             "carousel_items": self.carousel_items,
             "last_result": self.last_result,
