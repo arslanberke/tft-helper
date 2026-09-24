@@ -106,11 +106,21 @@ class JevEngine:
 
     name = "jev"
 
-    def __init__(self, model: str = "jev-latest") -> None:
+    def __init__(
+        self,
+        model: str = "jev-latest",
+        base_url: str | None = None,
+        api_key: str | None = None,
+    ) -> None:
         from typesafe_sdk import TypeSafeClient  # lazy: optional dep
 
         self._sdk = __import__("typesafe_sdk")
-        self._client = TypeSafeClient(model=model)
+        kwargs: dict[str, Any] = {"model": model}
+        if base_url:
+            kwargs["base_url"] = base_url
+        if api_key is not None:
+            kwargs["api_key"] = api_key
+        self._client = TypeSafeClient(**kwargs)
 
     def decide(self, state: dict, questions: list[Question]) -> dict[str, Answer]:
         Choice, Noul, Score = self._sdk.Choice, self._sdk.Noul, self._sdk.Score
@@ -152,6 +162,25 @@ class JevEngine:
         return out
 
 
+class KevEngine(JevEngine):
+    """Local Jev-compatible model — github.com/jaredpalmer/kev.
+
+    Kev serves the same TypeSafe System One API on `KEV_URL`
+    (default http://localhost:8009); the SDK just needs a base_url, so
+    `pip install typesafe-sdk` (the `jev` extra) is all that's required.
+    Joins the ensemble when KEV_URL is set.
+    """
+
+    name = "kev"
+
+    def __init__(self, model: str = "kev-latest") -> None:
+        super().__init__(
+            model=model,
+            base_url=os.environ.get("KEV_URL", "http://localhost:8009"),
+            api_key=os.environ.get("KEV_API_KEY", "local"),
+        )
+
+
 class EnsembleEngine:
     """Consensus layer: ask every engine the same questions and fuse the answers.
 
@@ -169,14 +198,18 @@ class EnsembleEngine:
         self.weights = weights or {}
 
     def decide(self, state: dict, questions: list[Question]) -> dict[str, FusedAnswer]:
+        # One dead engine (e.g. a local Kev server that's off) must not kill the
+        # whole request — drop it and fuse what answered.
+        results: dict[str, dict[str, Answer]] = {}
         with ThreadPoolExecutor(max_workers=len(self.engines)) as pool:
-            results = dict(
-                zip(
-                    [e.name for e in self.engines],
-                    pool.map(lambda e: e.decide(state, questions), self.engines),
-                    strict=True,
-                )
-            )
+            futures = {e.name: pool.submit(e.decide, state, questions) for e in self.engines}
+            for name, fut in futures.items():
+                try:
+                    results[name] = fut.result()
+                except Exception:
+                    continue
+        if not results:
+            raise RuntimeError("every decision engine failed")
 
         fused: dict[str, FusedAnswer] = {}
         for q in questions:
@@ -282,7 +315,7 @@ class MockEngine:
 
 
 def build_default_engine() -> Engine:
-    """Laya always; Jev joins the ensemble when TYPESAFE_API_KEY is set."""
+    """Laya always; Jev joins with TYPESAFE_API_KEY; local Kev joins with KEV_URL."""
     if os.environ.get("TFT_ENGINE") == "mock":
         return EnsembleEngine([MockEngine()])
     engines: list[Engine] = []
@@ -295,9 +328,14 @@ def build_default_engine() -> Engine:
             engines.append(JevEngine())
         except ImportError:
             pass
+    if os.environ.get("KEV_URL"):
+        try:
+            engines.append(KevEngine())
+        except ImportError:
+            pass
     if not engines:
         raise RuntimeError(
-            "No decision engine available: `pip install laya` for the local model "
-            "or set TYPESAFE_API_KEY for Jev."
+            "No decision engine available: `pip install laya` for the local model, "
+            "set TYPESAFE_API_KEY for Jev, or KEV_URL for a local Kev server."
         )
     return EnsembleEngine(engines)

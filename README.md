@@ -44,6 +44,7 @@ should I pivot". No parsing, no hallucinated JSON.
 ```bash
 pip install -e ".[laya,jev]"   # jev extra optional, needs TYPESAFE_API_KEY
 export TYPESAFE_API_KEY=...    # only for Jev; without it Laya runs alone
+export KEV_URL=http://localhost:8009  # optional: local Kev server (github.com/jaredpalmer/kev)
 tft-advisor                    # serves http://127.0.0.1:8371
 ```
 
