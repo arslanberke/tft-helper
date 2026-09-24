@@ -52,3 +52,50 @@ def test_noul_is_weighted_mean() -> None:
 def test_one_hot_spreads_complement() -> None:
     dist = _one_hot("a", 0.7, ["a", "b", "c"])
     assert dist == pytest.approx({"a": 0.7, "b": 0.15, "c": 0.15})
+
+
+def test_dead_engine_is_dropped_not_fatal() -> None:
+    class Dead:
+        name = "dead"
+
+        def decide(self, state, questions):
+            raise ConnectionError("local server down")
+
+    alive = FakeEngine(
+        "alive", {"comp": Answer("comp", "choice", {"a": 0.9, "b": 0.1}, choice="a")}
+    )
+    fused = EnsembleEngine([Dead(), alive]).decide({}, [Q_COMP])["comp"]
+    assert fused.choice == "a"
+    assert set(fused.per_engine) == {"alive"}
+
+
+def test_every_engine_dead_raises() -> None:
+    class Dead:
+        name = "dead"
+
+        def decide(self, state, questions):
+            raise ConnectionError("down")
+
+    with pytest.raises(RuntimeError, match="every decision engine failed"):
+        EnsembleEngine([Dead()]).decide({}, [Q_COMP])
+
+
+def test_kev_engine_points_sdk_at_local_url(monkeypatch) -> None:
+    import types
+
+    from tft_advisor.engines import KevEngine
+
+    captured: dict = {}
+
+    class FakeClient:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+    fake = types.ModuleType("typesafe_sdk")
+    fake.TypeSafeClient = FakeClient
+    monkeypatch.setitem(sys.modules, "typesafe_sdk", fake)
+    monkeypatch.setenv("KEV_URL", "http://localhost:9999")
+
+    KevEngine()
+    assert captured["base_url"] == "http://localhost:9999"
+    assert captured["api_key"] == "local"
