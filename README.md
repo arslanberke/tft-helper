@@ -41,6 +41,14 @@ should I pivot". No parsing, no hallucinated JSON.
 
 ## Setup
 
+**Windows one-click**: run `install.bat` once — it creates the venv, installs
+deps, fetches champion icons, and drops a **TFT Advisor** shortcut on your
+Desktop. Double-click it from then on (it skips install and just starts the
+service). The only manual part is sideloading `overwolf-app/` in Overwolf dev
+mode — once, ever.
+
+Manual equivalent:
+
 ```bash
 pip install -e ".[laya,jev]"   # jev extra optional, needs TYPESAFE_API_KEY
 export TYPESAFE_API_KEY=...    # only for Jev; without it Laya runs alone
