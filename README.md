@@ -58,6 +58,24 @@ tft-advisor                    # serves http://127.0.0.1:8371
 
 Then sideload `overwolf-app/` in Overwolf dev mode (`overwolf-app/README.md`).
 
+### Kev (optional local Jev)
+
+Kev (github.com/jaredpalmer/kev, Apache-2.0) serves the same System One API
+locally — the advisor's `KevEngine` joins the ensemble whenever `KEV_URL` is
+set. Kev 1.0 ships four sizes: **kev-0.8b** for laptops/≤12 GB GPUs (our
+default pick), **kev-4b** for 32 GB RAM or a mid GPU, **kev-9b** for bigger
+GPUs, **kev-27b** for 80 GB datacenter GPUs. Run one, then start the advisor
+with `KEV_URL`:
+
+```bash
+git clone https://github.com/jaredpalmer/kev.git && cd kev
+uv sync --extra serve
+uv run --extra serve python -m kev.serve --run jaredpalmer/kev-0.8b@v1.0 --port 8009
+```
+
+Pin `@v1.0` for the released 1.0 weights; drop it for the latest checkpoint.
+First run downloads the base model — that takes a while once.
+
 ## Comp data
 
 `service/data/comps.json` ships seeded example comps. For the live meta:
